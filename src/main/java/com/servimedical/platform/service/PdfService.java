@@ -232,6 +232,8 @@ public class PdfService {
     float panelHeight = 210f;
     drawBorder(cs, MARGIN_X, y - panelHeight, CONTENT_WIDTH, panelHeight);
 
+    List<String> injuries = aphService.toResponse(aph).getLesiones();
+
     try {
       PDImageXObject body = PDImageXObject.createFromFile(
           "C:\\Users\\nicol\\OneDrive\\Escritorio\\body.jpg", doc);
@@ -242,12 +244,10 @@ public class PdfService {
       float imageY = y - imageHeight - 5f;
 
       cs.drawImage(body, imageX, imageY, imageWidth, imageHeight);
+      drawInjuryMarks(cs, injuries, imageX, imageY, imageWidth, imageHeight);
     } catch (Exception ignored) {
       drawBodyFallback(cs, PAGE_WIDTH / 2f, y - 8f);
     }
-
-    List<String> injuries = aphService.toResponse(aph).getLesiones();
-    drawInjuryMarks(cs, injuries, y);
 
     return y - panelHeight;
   }
@@ -532,34 +532,174 @@ public class PdfService {
     drawCenteredText(cs, "Agrega static/body-map.png para igualar el formato Word", centerX, y - 82f);
   }
 
-  private void drawInjuryMarks(PDPageContentStream cs, List<String> injuries, float panelTopY)
-          throws Exception {
+  private void drawInjuryMarks(PDPageContentStream cs, List<String> injuries,
+                               float imageX, float imageY,
+                               float imageWidth, float imageHeight) throws Exception {
     if (injuries == null || injuries.isEmpty()) {
       return;
     }
 
-    cs.setNonStrokingColor(1f, 0f, 0f);
-    cs.setStrokingColor(1f, 0f, 0f);
+    java.util.Map<String, float[][]> zones = getBodyZonePolygons();
 
     for (String injury : injuries) {
-      String value = normalize(injury);
+      String normalized = normalize(injury);
+      String zoneKey = resolveBodyZone(normalized);
+      float[][] polygon = zones.get(zoneKey);
 
-      if (value.contains("cadera") || value.contains("abdomen")) {
-        fillCircle(cs, 327f, panelTopY - 74f, 5f);
-      } else if (value.contains("rodilla") || value.contains("pierna") || value.contains("muslo")) {
-        fillCircle(cs, 270f, panelTopY - 122f, 4f);
-      } else if (value.contains("cabeza") || value.contains("cara")) {
-        fillCircle(cs, 268f, panelTopY - 20f, 4f);
-      } else if (value.contains("torax") || value.contains("pecho")) {
-        fillCircle(cs, 268f, panelTopY - 52f, 4f);
-      } else if (value.contains("brazo") || value.contains("hombro")) {
-        fillCircle(cs, 244f, panelTopY - 70f, 4f);
-      } else if (value.contains("espalda") || value.contains("dorso") || value.contains("posterior") || value.contains("columna") || value.contains("lumbar")) {
-        fillCircle(cs, 212f, panelTopY - 50f, 5f);
+      if (polygon != null) {
+        drawFilledPolygon(cs, polygon, imageX, imageY, imageWidth, imageHeight);
+      }
+    }
+  }
+
+  /* Dibuja un pol�gono relleno en rojo semitransparente sobre la zona afectada */
+  private void drawFilledPolygon(PDPageContentStream cs, float[][] polygon,
+                                 float imageX, float imageY,
+                                 float imageWidth, float imageHeight) throws Exception {
+    cs.saveGraphicsState();
+
+    cs.setNonStrokingColor(1f, 0f, 0f);
+    cs.setStrokingColor(0.6f, 0f, 0f);
+    cs.setLineWidth(0.5f);
+
+    for (int i = 0; i < polygon.length; i++) {
+      float px = imageX + polygon[i][0] * imageWidth;
+      float py = imageY + (1f - polygon[i][1]) * imageHeight;
+
+      if (i == 0) {
+        cs.moveTo(px, py);
+      } else {
+        cs.lineTo(px, py);
       }
     }
 
-    resetColor(cs);
+    cs.closePath();
+    cs.fill();
+    cs.stroke();
+
+    cs.restoreGraphicsState();
+  }
+
+  /* Resuelve el nombre normalizado de una lesi�n al identificador de una zona corporal */
+  private String resolveBodyZone(String normalized) {
+    if (normalized.contains("cabeza") || normalized.contains("cara") || normalized.contains("cuello")) {
+      return "cabeza";
+    } else if (normalized.contains("torax") || normalized.contains("pecho") || normalized.contains("costilla")) {
+      return "torax";
+    } else if (normalized.contains("abdomen") || normalized.contains("estomago") || normalized.contains("vientre") || normalized.contains("barriga")) {
+      return "abdomen";
+    } else if (normalized.contains("brazo derecho") || normalized.contains("brazo der") || (normalized.contains("brazo") && normalized.contains("derecho"))) {
+      return "brazo_derecho";
+    } else if (normalized.contains("brazo izquierdo") || normalized.contains("brazo izq") || (normalized.contains("brazo") && normalized.contains("izquierdo"))) {
+      return "brazo_izquierdo";
+    } else if (normalized.contains("hombro")) {
+      return normalized.contains("derecho") || normalized.contains("der") ? "brazo_derecho" : "brazo_izquierdo";
+    } else if (normalized.contains("cadera")) {
+      return "cadera";
+    } else if (normalized.contains("muslo derecho") || normalized.contains("muslo der")) {
+      return "muslo_derecho";
+    } else if (normalized.contains("muslo izquierdo") || normalized.contains("muslo izq")) {
+      return "muslo_izquierdo";
+    } else if (normalized.contains("rodilla derecha") || normalized.contains("rodilla der")) {
+      return "rodilla_derecha";
+    } else if (normalized.contains("rodilla izquierda") || normalized.contains("rodilla izq")) {
+      return "rodilla_izquierda";
+    } else if (normalized.contains("pierna derecha") || normalized.contains("pierna der")) {
+      return "pierna_derecha";
+    } else if (normalized.contains("pierna izquierda") || normalized.contains("pierna izq")) {
+      return "pierna_izquierda";
+    } else if (normalized.contains("pierna") || normalized.contains("muslo") || normalized.contains("gemelo")) {
+      return "muslo_derecho";
+    } else if (normalized.contains("espalda") || normalized.contains("dorso") || normalized.contains("columna") || normalized.contains("lumbar")) {
+      return "torax";
+    }
+    return null;
+  }
+
+  /* Retorna un mapa de zonas corporales con sus pol�gonos en coordenadas relativas (0-1) */
+  private java.util.Map<String, float[][]> getBodyZonePolygons() {
+    java.util.Map<String, float[][]> zones = new java.util.HashMap<>();
+
+    zones.put("cabeza", new float[][]{
+        {0.30f, 0.86f}, {0.42f, 0.86f}, {0.45f, 0.78f}, {0.44f, 0.70f},
+        {0.40f, 0.64f}, {0.33f, 0.63f}, {0.28f, 0.66f}, {0.26f, 0.72f},
+        {0.24f, 0.80f}, {0.27f, 0.85f}
+    });
+
+    zones.put("torax", new float[][]{
+        {0.22f, 0.62f}, {0.28f, 0.60f}, {0.32f, 0.50f}, {0.34f, 0.38f},
+        {0.32f, 0.28f}, {0.28f, 0.20f}, {0.24f, 0.18f}, {0.20f, 0.20f},
+        {0.16f, 0.26f}, {0.14f, 0.36f}, {0.14f, 0.48f}, {0.16f, 0.58f},
+        {0.18f, 0.62f}
+    });
+
+    zones.put("abdomen", new float[][]{
+        {0.22f, 0.28f}, {0.28f, 0.26f}, {0.34f, 0.24f}, {0.38f, 0.22f},
+        {0.40f, 0.18f}, {0.38f, 0.14f}, {0.34f, 0.12f}, {0.28f, 0.12f},
+        {0.22f, 0.14f}, {0.18f, 0.18f}, {0.16f, 0.22f}, {0.18f, 0.26f}
+    });
+
+    zones.put("brazo_derecho", new float[][]{
+        {0.42f, 0.60f}, {0.48f, 0.56f}, {0.54f, 0.50f}, {0.58f, 0.44f},
+        {0.60f, 0.38f}, {0.58f, 0.32f}, {0.54f, 0.28f}, {0.48f, 0.26f},
+        {0.44f, 0.28f}, {0.40f, 0.32f}, {0.38f, 0.38f}, {0.38f, 0.46f},
+        {0.38f, 0.54f}, {0.40f, 0.58f}
+    });
+
+    zones.put("brazo_izquierdo", new float[][]{
+        {0.10f, 0.60f}, {0.12f, 0.56f}, {0.08f, 0.50f}, {0.06f, 0.44f},
+        {0.04f, 0.38f}, {0.04f, 0.32f}, {0.06f, 0.28f}, {0.10f, 0.26f},
+        {0.14f, 0.28f}, {0.16f, 0.32f}, {0.18f, 0.38f}, {0.18f, 0.46f},
+        {0.16f, 0.54f}, {0.14f, 0.58f}
+    });
+
+    zones.put("cadera", new float[][]{
+        {0.20f, 0.18f}, {0.28f, 0.16f}, {0.36f, 0.16f}, {0.42f, 0.18f},
+        {0.44f, 0.14f}, {0.42f, 0.10f}, {0.36f, 0.08f}, {0.28f, 0.08f},
+        {0.20f, 0.10f}, {0.18f, 0.14f}
+    });
+
+    zones.put("muslo_derecho", new float[][]{
+        {0.36f, 0.12f}, {0.42f, 0.10f}, {0.48f, 0.08f}, {0.52f, 0.06f},
+        {0.54f, 0.04f}, {0.52f, 0.02f}, {0.48f, 0.00f}, {0.42f, 0.00f},
+        {0.36f, 0.02f}, {0.32f, 0.04f}, {0.30f, 0.08f}
+    });
+
+    zones.put("muslo_izquierdo", new float[][]{
+        {0.12f, 0.12f}, {0.14f, 0.10f}, {0.12f, 0.08f}, {0.08f, 0.06f},
+        {0.06f, 0.04f}, {0.04f, 0.02f}, {0.02f, 0.00f}, {0.06f, 0.00f},
+        {0.12f, 0.02f}, {0.14f, 0.04f}, {0.16f, 0.08f}, {0.18f, 0.12f}
+    });
+
+    zones.put("rodilla_derecha", new float[][]{
+        {0.34f, 0.06f}, {0.38f, 0.04f}, {0.42f, 0.02f},
+        {0.44f, 0.00f}, {0.42f, -0.02f}, {0.38f, -0.04f},
+        {0.34f, -0.04f}, {0.30f, -0.02f}, {0.28f, 0.00f},
+        {0.28f, 0.02f}, {0.30f, 0.04f}
+    });
+
+    zones.put("rodilla_izquierda", new float[][]{
+        {0.14f, 0.06f}, {0.12f, 0.04f}, {0.10f, 0.02f},
+        {0.08f, 0.00f}, {0.10f, -0.02f}, {0.14f, -0.04f},
+        {0.18f, -0.04f}, {0.22f, -0.02f}, {0.24f, 0.00f},
+        {0.24f, 0.02f}, {0.20f, 0.04f}
+    });
+
+    zones.put("pierna_derecha", new float[][]{
+        {0.34f, -0.04f}, {0.40f, -0.06f}, {0.46f, -0.08f},
+        {0.48f, -0.12f}, {0.46f, -0.16f}, {0.42f, -0.20f},
+        {0.38f, -0.22f}, {0.34f, -0.22f}, {0.30f, -0.20f},
+        {0.28f, -0.16f}, {0.28f, -0.12f}, {0.30f, -0.08f}
+    });
+
+    zones.put("pierna_izquierda", new float[][]{
+        {0.14f, -0.04f}, {0.12f, -0.06f}, {0.08f, -0.08f},
+        {0.06f, -0.12f}, {0.06f, -0.16f}, {0.08f, -0.20f},
+        {0.12f, -0.22f}, {0.16f, -0.22f}, {0.20f, -0.20f},
+        {0.22f, -0.16f}, {0.22f, -0.12f}, {0.20f, -0.08f}
+    });
+
+    return zones;
   }
 
   private PDImageXObject loadImage(PDDocument doc, String path) throws Exception {
@@ -636,19 +776,6 @@ public class PdfService {
   private void resetColor(PDPageContentStream cs) throws Exception {
     cs.setNonStrokingColor(0f, 0f, 0f);
     cs.setStrokingColor(0f, 0f, 0f);
-  }
-
-  private void fillCircle(PDPageContentStream cs, float centerX, float centerY, float radius)
-          throws Exception {
-    float k = 0.552284749831f;
-    float c = radius * k;
-
-    cs.moveTo(centerX, centerY + radius);
-    cs.curveTo(centerX + c, centerY + radius, centerX + radius, centerY + c, centerX + radius, centerY);
-    cs.curveTo(centerX + radius, centerY - c, centerX + c, centerY - radius, centerX, centerY - radius);
-    cs.curveTo(centerX - c, centerY - radius, centerX - radius, centerY - c, centerX - radius, centerY);
-    cs.curveTo(centerX - radius, centerY + c, centerX - c, centerY + radius, centerX, centerY + radius);
-    cs.fill();
   }
 
   private static List<String> wrap(String value, int maxChars) {
