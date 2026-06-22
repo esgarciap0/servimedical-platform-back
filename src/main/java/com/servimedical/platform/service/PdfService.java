@@ -13,6 +13,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
@@ -235,8 +236,9 @@ public class PdfService {
     List<String> injuries = aphService.toResponse(aph).getLesiones();
 
     try {
-      PDImageXObject body = PDImageXObject.createFromFile(
-          "C:\\Users\\nicol\\OneDrive\\Escritorio\\body.jpg", doc);
+      InputStream is = getClass().getResourceAsStream("/static/body.jpg");
+      if (is == null) throw new RuntimeException("body.jpg not found in classpath");
+      PDImageXObject body = JPEGFactory.createFromStream(doc, is);
 
       float imageWidth = 155f;
       float imageHeight = 200f;
