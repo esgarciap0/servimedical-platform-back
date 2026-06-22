@@ -5,6 +5,8 @@ import com.servimedical.platform.repository.AphRepository;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.text.Normalizer;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -59,6 +61,11 @@ public class PdfService {
   public ByteArrayResource generatePdf(Long aphId) {
     Aph aph = repository.findById(aphId)
             .orElseThrow(() -> new RuntimeException("APH no encontrado con id: " + aphId));
+
+    List<String> missing = validateRequiredFields(aph);
+    if (!missing.isEmpty()) {
+      throw new RuntimeException("Faltan datos por llenar: " + String.join(", ", missing));
+    }
 
     try (PDDocument doc = new PDDocument()) {
       PDPage page = new PDPage(PDRectangle.A4);
@@ -740,6 +747,98 @@ public class PdfService {
 
   private static String ft(Object value) {
     return value != null ? value.toString() : "";
+  }
+
+  private List<String> validateRequiredFields(Aph aph) {
+    List<String> missing = new ArrayList<>();
+
+    record Check(String label, Object value) {}
+    Check[] checks = {
+      /* Datos generales */
+      new Check("Placa", aph.getPlaca()),
+      new Check("Móvil", aph.getMovil()),
+      new Check("Código", aph.getCodigo()),
+      new Check("Tipo de traslado", aph.getTipoTraslado()),
+      new Check("Prioridad", aph.getPrioridad()),
+      new Check("Fecha de traslado", aph.getFechaAccidente()),
+      new Check("Hora de traslado", aph.getHoraAccidente()),
+      new Check("Lugar de ocurrencia", aph.getLugarOcurrencia()),
+      new Check("Zona origen", aph.getZonaOrigen()),
+      new Check("Departamento origen", aph.getDepartamentoOrigen()),
+      new Check("Municipio origen", aph.getMunicipioOrigen()),
+      /* Datos del paciente */
+      new Check("Documento", aph.getDocumento()),
+      new Check("Primer nombre", aph.getPrimerNombre()),
+      new Check("Primer apellido", aph.getPrimerApellido()),
+      new Check("Sexo", aph.getSexo()),
+      new Check("Fecha de nacimiento", aph.getFechaNacimiento()),
+      new Check("Edad", aph.getEdad()),
+      new Check("Estado civil", aph.getEstadoCivil()),
+      new Check("Ocupación", aph.getOcupacion()),
+      new Check("Celular", aph.getCelular()),
+      new Check("Dirección de residencia", aph.getDireccion()),
+      new Check("Teléfono", aph.getTelefono()),
+      new Check("Zona paciente", aph.getZonaPaciente()),
+      new Check("Departamento", aph.getDepartamento()),
+      new Check("Ciudad", aph.getCiudad()),
+      /* Acompañante */
+      new Check("Acompañante", aph.getAcompanante()),
+      new Check("Celular acompañante", aph.getCelularAcompanante()),
+      new Check("Avisar a", aph.getAvisarA()),
+      new Check("Parentesco", aph.getParentesco()),
+      /* Aseguradora */
+      new Check("Aseguradora", aph.getAseguradora()),
+      new Check("Póliza", aph.getPoliza()),
+      new Check("Plan de beneficios", aph.getPlanBeneficios()),
+      /* Traslado */
+      new Check("Hora de llegada", aph.getHoraLlegada()),
+      new Check("Transportado a", aph.getTransportadoA()),
+      new Check("Departamento traslado", aph.getDepartamentoTraslado()),
+      new Check("Ciudad transporte", aph.getCiudadTransporte()),
+      /* Causa externa */
+      new Check("Causa externa", aph.getCausaExterna()),
+      /* Antecedentes */
+      new Check("Alergias", aph.getAlergia()),
+      new Check("Líquidos", aph.getLiquidos()),
+      new Check("Medicación", aph.getMedicacion()),
+      new Check("Patológicos", aph.getPatologicos()),
+      /* Examen físico */
+      new Check("PA", aph.getPresion()),
+      new Check("FC", aph.getFrecuenciaCardiaca()),
+      new Check("FR", aph.getFrecuenciaRespiratoria()),
+      new Check("Temperatura", aph.getTemperatura()),
+      new Check("RO", aph.getRo()),
+      new Check("RV", aph.getRv()),
+      new Check("RM", aph.getRm()),
+      /* Diagnósticos y hallazgos */
+      new Check("Diagnósticos", aph.getDiagnosticos()),
+      new Check("Hallazgos", aph.getHallazgos()),
+      /* Lesiones y procedimientos */
+      new Check("Lesiones", aph.getLesiones()),
+      new Check("Procedimientos", aph.getProcedimientos()),
+      /* Materiales */
+      new Check("Materiales", aph.getMateriales()),
+      /* Tripulación */
+      new Check("Conductor", aph.getConductor()),
+      new Check("Paramedico", aph.getParamedico()),
+      new Check("Documento médico", aph.getDocumentoMedico()),
+    };
+
+    for (Check c : checks) {
+      if (isBlank(c.value())) {
+        missing.add(c.label());
+      }
+    }
+
+    return missing;
+  }
+
+  private static boolean isBlank(Object value) {
+    if (value == null) return true;
+    if (value instanceof String s) return s.isBlank();
+    if (value instanceof LocalDate) return false;
+    if (value instanceof LocalTime) return false;
+    return false;
   }
 
   private record Cell(String label, String value, int span) {}
