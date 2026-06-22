@@ -236,14 +236,15 @@ public class PdfService {
           throws Exception {
     y = section(cs, y, "UBICACION DE LAS LESIONES");
 
-    float panelHeight = 138f;
+    float panelHeight = 210f;
     drawBorder(cs, MARGIN_X, y - panelHeight, CONTENT_WIDTH, panelHeight);
 
     try {
-      PDImageXObject body = loadImage(doc, "static/body-map.png");
+      PDImageXObject body = PDImageXObject.createFromFile(
+          "C:\\Users\\nicol\\OneDrive\\Escritorio\\body.jpg", doc);
 
       float imageWidth = 155f;
-      float imageHeight = 128f;
+      float imageHeight = 200f;
       float imageX = (PAGE_WIDTH - imageWidth) / 2f;
       float imageY = y - imageHeight - 5f;
 
@@ -560,6 +561,8 @@ public class PdfService {
         fillCircle(cs, 268f, panelTopY - 52f, 4f);
       } else if (value.contains("brazo") || value.contains("hombro")) {
         fillCircle(cs, 244f, panelTopY - 70f, 4f);
+      } else if (value.contains("espalda") || value.contains("dorso") || value.contains("posterior") || value.contains("columna") || value.contains("lumbar")) {
+        fillCircle(cs, 212f, panelTopY - 50f, 5f);
       }
     }
 
