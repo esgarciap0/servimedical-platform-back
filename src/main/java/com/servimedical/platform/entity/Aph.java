@@ -61,6 +61,8 @@ public class Aph {
   private String celularAcompanante;
   private String avisarA;
   private String parentesco;
+  private String numeroParaAvisar;
+  private String numeroParaAvisar2;
 
   /* Ubicacion */
   private String direccion;
@@ -82,8 +84,10 @@ public class Aph {
   /* Datos traslado */
   private LocalTime horaLlegada;
   private String transportadoA;
+  private String codigoHabilitacion;
   private String departamentoTraslado;
   private String ciudadTransporte;
+  private String estadoPaciente;
 
   /* Causa externa */
   private String causaExterna;
@@ -117,7 +121,9 @@ public class Aph {
 
   /* Tripulacion */
   private String conductor;
+  private String documentoConductor;
   private String paramedico;
+  private String documentoParamedico;
   private String medico;
   private String documentoMedico;
 

@@ -71,6 +71,8 @@ public class AphRequest {
   private String avisarA;
   @NotBlank(message = "Parentesco es obligatorio")
   private String parentesco;
+  private String numeroParaAvisar;
+  private String numeroParaAvisar2;
 
   @NotBlank(message = "Dirección es obligatorio")
   private String direccion;
@@ -101,10 +103,12 @@ public class AphRequest {
   private LocalTime horaLlegada;
   @NotBlank(message = "Transportado a es obligatorio")
   private String transportadoA;
+  private String codigoHabilitacion;
   @NotBlank(message = "Departamento de traslado es obligatorio")
   private String departamentoTraslado;
   @NotBlank(message = "Ciudad de transporte es obligatorio")
   private String ciudadTransporte;
+  private String estadoPaciente;
 
   @NotBlank(message = "Causa externa es obligatorio")
   private String causaExterna;
@@ -139,8 +143,10 @@ public class AphRequest {
 
   @NotBlank(message = "Conductor es obligatorio")
   private String conductor;
+  private String documentoConductor;
   @NotBlank(message = "Paramédico es obligatorio")
   private String paramedico;
+  private String documentoParamedico;
   @NotBlank(message = "Médico es obligatorio")
   private String medico;
   @NotBlank(message = "Documento médico es obligatorio")

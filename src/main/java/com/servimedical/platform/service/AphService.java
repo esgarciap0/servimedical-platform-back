@@ -94,6 +94,8 @@ public class AphService {
     entity.setCelularAcompanante(r.getCelularAcompanante());
     entity.setAvisarA(r.getAvisarA());
     entity.setParentesco(r.getParentesco());
+    entity.setNumeroParaAvisar(r.getNumeroParaAvisar());
+    entity.setNumeroParaAvisar2(r.getNumeroParaAvisar2());
     entity.setDireccion(r.getDireccion());
     entity.setZonaPaciente(r.getZonaPaciente());
     entity.setDepartamento(r.getDepartamento());
@@ -107,8 +109,10 @@ public class AphService {
     entity.setPlanBeneficios(r.getPlanBeneficios());
     entity.setHoraLlegada(r.getHoraLlegada());
     entity.setTransportadoA(r.getTransportadoA());
+    entity.setCodigoHabilitacion(r.getCodigoHabilitacion());
     entity.setDepartamentoTraslado(r.getDepartamentoTraslado());
     entity.setCiudadTransporte(r.getCiudadTransporte());
+    entity.setEstadoPaciente(r.getEstadoPaciente());
     entity.setCausaExterna(r.getCausaExterna());
     entity.setPresion(r.getPresion());
     entity.setFrecuenciaCardiaca(r.getFrecuenciaCardiaca());
@@ -123,7 +127,9 @@ public class AphService {
     entity.setProcedimientos(toJson(r.getProcedimientos()));
     entity.setMateriales(r.getMateriales());
     entity.setConductor(r.getConductor());
+    entity.setDocumentoConductor(r.getDocumentoConductor());
     entity.setParamedico(r.getParamedico());
+    entity.setDocumentoParamedico(r.getDocumentoParamedico());
     entity.setMedico(r.getMedico());
     entity.setDocumentoMedico(r.getDocumentoMedico());
   }
@@ -159,6 +165,8 @@ public class AphService {
         .celularAcompanante(entity.getCelularAcompanante())
         .avisarA(entity.getAvisarA())
         .parentesco(entity.getParentesco())
+        .numeroParaAvisar(entity.getNumeroParaAvisar())
+        .numeroParaAvisar2(entity.getNumeroParaAvisar2())
         .direccion(entity.getDireccion())
         .zonaPaciente(entity.getZonaPaciente())
         .departamento(entity.getDepartamento())
@@ -172,8 +180,10 @@ public class AphService {
         .planBeneficios(entity.getPlanBeneficios())
         .horaLlegada(entity.getHoraLlegada())
         .transportadoA(entity.getTransportadoA())
+        .codigoHabilitacion(entity.getCodigoHabilitacion())
         .departamentoTraslado(entity.getDepartamentoTraslado())
         .ciudadTransporte(entity.getCiudadTransporte())
+        .estadoPaciente(entity.getEstadoPaciente())
         .causaExterna(entity.getCausaExterna())
         .presion(entity.getPresion())
         .frecuenciaCardiaca(entity.getFrecuenciaCardiaca())
@@ -188,7 +198,9 @@ public class AphService {
         .procedimientos(fromJson(entity.getProcedimientos()))
         .materiales(entity.getMateriales())
         .conductor(entity.getConductor())
+        .documentoConductor(entity.getDocumentoConductor())
         .paramedico(entity.getParamedico())
+        .documentoParamedico(entity.getDocumentoParamedico())
         .medico(entity.getMedico())
         .documentoMedico(entity.getDocumentoMedico())
         .createdAt(entity.getCreatedAt())

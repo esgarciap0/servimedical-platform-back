@@ -44,6 +44,8 @@ public class AphResponse {
   private String celularAcompanante;
   private String avisarA;
   private String parentesco;
+  private String numeroParaAvisar;
+  private String numeroParaAvisar2;
 
   private String direccion;
   private String zonaPaciente;
@@ -61,8 +63,10 @@ public class AphResponse {
 
   private LocalTime horaLlegada;
   private String transportadoA;
+  private String codigoHabilitacion;
   private String departamentoTraslado;
   private String ciudadTransporte;
+  private String estadoPaciente;
 
   private String causaExterna;
 
@@ -81,7 +85,9 @@ public class AphResponse {
 
   private String materiales;
   private String conductor;
+  private String documentoConductor;
   private String paramedico;
+  private String documentoParamedico;
   private String medico;
   private String documentoMedico;
 

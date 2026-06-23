@@ -13,7 +13,6 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
-import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
@@ -173,7 +172,7 @@ public class PdfService {
             cell("No. de telefono", nvl(aph.getCelularAcompanante()), 2),
             cell("Avisar a", nvl(aph.getAvisarA()), 3),
             cell("Parentesco", nvl(aph.getParentesco()), 2),
-            cell("No. de telefono", nvl(aph.getTelefono()), 2)
+            cell("No. de telefono", nvl(aph.getNumeroParaAvisar()), 2)
     );
 
     y = tableRow(cs, y,
@@ -185,10 +184,10 @@ public class PdfService {
     return tableRow(cs, y,
             cell("Hora de llegada", ft(aph.getHoraLlegada()), 2),
             cell("Transportado a", nvl(aph.getTransportadoA()), 4),
-            cell("Cod Habilitación", "", 3),
+            cell("Cod Habilitación", nvl(aph.getCodigoHabilitacion()), 3),
             cell("Departamento", nvl(aph.getDepartamentoTraslado()), 2),
             cell("Municipio", nvl(aph.getCiudadTransporte()), 2),
-            cell("Estado", "", 1)
+            cell("Estado", nvl(aph.getEstadoPaciente()), 1)
     );
   }
 
@@ -235,21 +234,7 @@ public class PdfService {
 
     List<String> injuries = aphService.toResponse(aph).getLesiones();
 
-    try {
-      InputStream is = getClass().getResourceAsStream("/static/body.jpg");
-      if (is == null) throw new RuntimeException("body.jpg not found in classpath");
-      PDImageXObject body = JPEGFactory.createFromStream(doc, is);
-
-      float imageWidth = 155f;
-      float imageHeight = 200f;
-      float imageX = (PAGE_WIDTH - imageWidth) / 2f;
-      float imageY = y - imageHeight - 5f;
-
-      cs.drawImage(body, imageX, imageY, imageWidth, imageHeight);
-      drawInjuryMarks(cs, injuries, imageX, imageY, imageWidth, imageHeight);
-    } catch (Exception ignored) {
-      drawBodyFallback(cs, PAGE_WIDTH / 2f, y - 8f);
-    }
+    drawVectorBodyMap(cs, injuries, PAGE_WIDTH / 2f, y - 9f);
 
     return y - panelHeight;
   }
@@ -292,9 +277,9 @@ public class PdfService {
     float colW = CONTENT_WIDTH / 3f;
 
     y = tableRow(cs, y,
-            cell("Conductor", nvl(aph.getConductor()) + " " + nvl(aph.getDocumentoMedico()), 1),
-            cell("Encargado del Traslado", nvl(aph.getParamedico()) + " " + nvl(aph.getDocumentoMedico()), 1),
-            cell("Quien recibe al paciente", "", 1)
+            cell("Conductor", joinPersonDoc(aph.getConductor(), aph.getDocumentoConductor()), 1),
+            cell("Encargado del Traslado", joinPersonDoc(aph.getParamedico(), aph.getDocumentoParamedico()), 1),
+            cell("Quien recibe al paciente", joinPersonDoc(aph.getMedico(), aph.getDocumentoMedico()), 1)
     );
 
     float signatureHeight = 58f;
@@ -532,6 +517,167 @@ public class PdfService {
 
     setFont(cs, normal, 6f);
     drawCenteredText(cs, "Agrega static/body-map.png para igualar el formato Word", centerX, y - 82f);
+  }
+
+  private void drawVectorBodyMap(PDPageContentStream cs, List<String> injuries, float centerX, float topY)
+          throws Exception {
+    float frontX = centerX - 58f;
+    float backX = centerX + 58f;
+    float bodyTop = topY - 8f;
+
+    drawBodyView(cs, injuries, "front", frontX, bodyTop);
+    drawBodyView(cs, injuries, "back", backX, bodyTop);
+  }
+
+  private void drawBodyView(PDPageContentStream cs, List<String> injuries, String view, float x, float y)
+          throws Exception {
+    boolean back = "back".equals(view);
+
+    setFont(cs, bold, 5.4f);
+    drawCenteredText(cs, back ? "POSTERIOR" : "ANTERIOR", x, y + 3f);
+
+    drawPart(cs, oval(x, y - 20f, 11f, 14f), isSelected(injuries, view, "head", null));
+    drawPart(cs, poly(
+            x - 16f, y - 35f, x + 16f, y - 35f, x + 13f, y - 85f,
+            x + 5f, y - 94f, x - 5f, y - 94f, x - 13f, y - 85f
+    ), isSelected(injuries, view, back ? "upper-back" : "chest", null));
+    drawPart(cs, poly(
+            x - 13f, y - 85f, x + 13f, y - 85f, x + 15f, y - 124f,
+            x + 5f, y - 135f, x - 5f, y - 135f, x - 15f, y - 124f
+    ), isSelected(injuries, view, back ? "lower-back" : "abs", null));
+
+    drawPart(cs, poly(x - 18f, y - 36f, x - 34f, y - 55f, x - 39f, y - 91f, x - 28f, y - 105f, x - 17f, y - 89f),
+            isSelected(injuries, view, back ? "triceps" : "biceps", "left"));
+    drawPart(cs, poly(x + 18f, y - 36f, x + 34f, y - 55f, x + 39f, y - 91f, x + 28f, y - 105f, x + 17f, y - 89f),
+            isSelected(injuries, view, back ? "triceps" : "biceps", "right"));
+
+    drawPart(cs, poly(x - 15f, y - 134f, x - 2f, y - 134f, x - 3f, y - 186f, x - 10f, y - 196f, x - 18f, y - 188f, x - 20f, y - 153f),
+            isSelected(injuries, view, back ? "hamstring" : "quadriceps", "left"));
+    drawPart(cs, poly(x + 2f, y - 134f, x + 15f, y - 134f, x + 20f, y - 153f, x + 18f, y - 188f, x + 10f, y - 196f, x + 3f, y - 186f),
+            isSelected(injuries, view, back ? "hamstring" : "quadriceps", "right"));
+    drawPart(cs, poly(x - 17f, y - 190f, x - 6f, y - 190f, x - 6f, y - 204f, x - 18f, y - 204f),
+            isSelected(injuries, view, "knees", "left"));
+    drawPart(cs, poly(x + 6f, y - 190f, x + 17f, y - 190f, x + 18f, y - 204f, x + 6f, y - 204f),
+            isSelected(injuries, view, "knees", "right"));
+    drawPart(cs, poly(x - 18f, y - 202f, x - 6f, y - 202f, x - 7f, y - 247f, x - 14f, y - 252f, x - 20f, y - 246f),
+            isSelected(injuries, view, back ? "calves" : "tibialis", "left"));
+    drawPart(cs, poly(x + 6f, y - 202f, x + 18f, y - 202f, x + 20f, y - 246f, x + 14f, y - 252f, x + 7f, y - 247f),
+            isSelected(injuries, view, back ? "calves" : "tibialis", "right"));
+
+    if (isSelected(injuries, view, "gluteal", null)) {
+      drawPart(cs, poly(x - 18f, y - 130f, x + 18f, y - 130f, x + 14f, y - 146f, x, y - 154f, x - 14f, y - 146f), true);
+    }
+
+    drawBodyDetailLines(cs, x, y, back);
+    resetColor(cs);
+  }
+
+  private void drawPart(PDPageContentStream cs, float[][] points, boolean selected) throws Exception {
+    cs.setNonStrokingColor(selected ? 1f : 0f, 0f, 0f);
+    cs.setStrokingColor(1f, 1f, 1f);
+    cs.setLineWidth(0.75f);
+
+    for (int i = 0; i < points.length; i++) {
+      if (i == 0) {
+        cs.moveTo(points[i][0], points[i][1]);
+      } else {
+        cs.lineTo(points[i][0], points[i][1]);
+      }
+    }
+
+    cs.closePath();
+    cs.fillAndStroke();
+  }
+
+  private void drawBodyDetailLines(PDPageContentStream cs, float x, float y, boolean back) throws Exception {
+    cs.setStrokingColor(1f, 1f, 1f);
+    cs.setLineWidth(1f);
+
+    if (back) {
+      drawLine(cs, x, y - 35f, x, y - 125f);
+      drawLine(cs, x - 15f, y - 58f, x + 15f, y - 88f);
+      drawLine(cs, x + 15f, y - 58f, x - 15f, y - 88f);
+      drawLine(cs, x - 13f, y - 133f, x + 13f, y - 145f);
+    } else {
+      drawLine(cs, x, y - 38f, x, y - 128f);
+      drawLine(cs, x - 14f, y - 62f, x + 14f, y - 77f);
+      drawLine(cs, x - 13f, y - 86f, x + 13f, y - 100f);
+      drawLine(cs, x - 10f, y - 115f, x + 10f, y - 132f);
+    }
+
+    drawLine(cs, x - 2f, y - 134f, x - 2f, y - 248f);
+    drawLine(cs, x + 2f, y - 134f, x + 2f, y - 248f);
+  }
+
+  private boolean isSelected(List<String> injuries, String view, String slug, String side) {
+    if (injuries == null) {
+      return false;
+    }
+
+    String expectedSide = side == null ? "both" : side;
+    String expected = view + ":" + slug + ":" + expectedSide;
+
+    for (String injury : injuries) {
+      String normalized = normalize(injury);
+      if (expected.equals(normalized)) {
+        return true;
+      }
+      if (side == null && normalized.startsWith(view + ":" + slug + ":")) {
+        return true;
+      }
+      if (matchesLegacyInjury(normalized, view, slug, side)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private boolean matchesLegacyInjury(String normalized, String view, String slug, String side) {
+    boolean back = "back".equals(view) || normalized.contains("posterior") || normalized.contains("espalda") || normalized.contains("lumbar");
+    if ("back".equals(view) != back && (normalized.contains("posterior") || normalized.contains("espalda") || normalized.contains("lumbar"))) {
+      return false;
+    }
+
+    if ("head".equals(slug)) return normalized.contains("cabeza") || normalized.contains("cara") || normalized.contains("cuello");
+    if ("chest".equals(slug) || "upper-back".equals(slug)) return normalized.contains("torax") || normalized.contains("pecho") || normalized.contains("espalda");
+    if ("abs".equals(slug)) return normalized.contains("abdomen") || normalized.contains("vientre");
+    if ("lower-back".equals(slug)) return normalized.contains("lumbar");
+    if ("gluteal".equals(slug)) return normalized.contains("cadera") || normalized.contains("gluteo");
+    if ("knees".equals(slug)) return normalized.contains("rodilla");
+    if ("quadriceps".equals(slug) || "hamstring".equals(slug)) return normalized.contains("muslo") || normalized.contains("pierna");
+    if ("tibialis".equals(slug) || "calves".equals(slug)) return normalized.contains("pierna") || normalized.contains("pantorrilla") || normalized.contains("gemelo");
+    if ("biceps".equals(slug) || "triceps".equals(slug)) {
+      if (side != null && "left".equals(side)) return normalized.contains("brazo") && (normalized.contains("izquierdo") || normalized.contains("izq"));
+      if (side != null && "right".equals(side)) return normalized.contains("brazo") && (normalized.contains("derecho") || normalized.contains("der"));
+      return normalized.contains("brazo");
+    }
+    return false;
+  }
+
+  private void drawLine(PDPageContentStream cs, float x1, float y1, float x2, float y2) throws Exception {
+    cs.moveTo(x1, y1);
+    cs.lineTo(x2, y2);
+    cs.stroke();
+  }
+
+  private float[][] poly(float... values) {
+    float[][] points = new float[values.length / 2][2];
+    for (int i = 0; i < values.length; i += 2) {
+      points[i / 2][0] = values[i];
+      points[i / 2][1] = values[i + 1];
+    }
+    return points;
+  }
+
+  private float[][] oval(float centerX, float centerY, float radiusX, float radiusY) {
+    float[][] points = new float[16][2];
+    for (int i = 0; i < points.length; i++) {
+      double angle = (Math.PI * 2 * i) / points.length;
+      points[i][0] = centerX + (float) Math.cos(angle) * radiusX;
+      points[i][1] = centerY + (float) Math.sin(angle) * radiusY;
+    }
+    return points;
   }
 
   private void drawInjuryMarks(PDPageContentStream cs, List<String> injuries,
@@ -842,6 +988,11 @@ public class PdfService {
 
   private static String joinList(List<String> values) {
     return values == null || values.isEmpty() ? "" : String.join(", ", values);
+  }
+
+  private static String joinPersonDoc(String name, String document) {
+    String full = (nvl(name) + " " + nvl(document)).trim();
+    return full;
   }
 
   private static String inferType(String doc) {
