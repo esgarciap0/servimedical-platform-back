@@ -81,6 +81,7 @@ public class AphResponse {
   private String diagnosticos;
 
   private List<String> lesiones;
+  private String lesionesImagen;
   private List<String> procedimientos;
 
   private String materiales;

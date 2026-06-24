@@ -16,6 +16,7 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
+import java.util.Base64;
 
 @Service
 public class PdfService {
@@ -229,14 +230,48 @@ public class PdfService {
           throws Exception {
     y = section(cs, y, "UBICACION DE LAS LESIONES");
 
-    float panelHeight = 210f;
+    float panelHeight = 150f;
     drawBorder(cs, MARGIN_X, y - panelHeight, CONTENT_WIDTH, panelHeight);
 
-    List<String> injuries = aphService.toResponse(aph).getLesiones();
-
-    drawVectorBodyMap(cs, injuries, PAGE_WIDTH / 2f, y - 9f);
+    if (aph.getLesionesImagen() != null && !aph.getLesionesImagen().isBlank()) {
+      drawCapturedBodyImage(cs, doc, aph.getLesionesImagen(), y);
+    } else {
+      drawBodyFallback(cs, PAGE_WIDTH / 2f, y - 8f);
+    }
 
     return y - panelHeight;
+  }
+
+  private void drawCapturedBodyImage(
+          PDPageContentStream cs,
+          PDDocument doc,
+          String base64Image,
+          float panelTopY
+  ) throws Exception {
+    byte[] imageBytes = decodeBase64Image(base64Image);
+
+    PDImageXObject bodyImage = PDImageXObject.createFromByteArray(
+            doc,
+            imageBytes,
+            "aph-body-map.png"
+    );
+
+    float imageWidth = 210f;
+    float imageHeight = 135f;
+    float imageX = (PAGE_WIDTH - imageWidth) / 2f;
+    float imageY = panelTopY - imageHeight - 7f;
+
+    cs.drawImage(bodyImage, imageX, imageY, imageWidth, imageHeight);
+  }
+
+  private byte[] decodeBase64Image(String base64Image) {
+    String cleanBase64 = base64Image;
+
+    if (base64Image.contains(",")) {
+      cleanBase64 = base64Image.substring(base64Image.indexOf(",") + 1);
+    }
+
+    return Base64.getDecoder().decode(cleanBase64);
   }
 
   private float drawDiagnosisAndFindings(PDPageContentStream cs, float y, Aph aph) throws Exception {

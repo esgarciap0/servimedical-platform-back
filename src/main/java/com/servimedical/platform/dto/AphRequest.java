@@ -134,6 +134,7 @@ public class AphRequest {
 
   @NotEmpty(message = "Seleccione al menos una lesión")
   private List<String> lesiones;
+  private String lesionesImagen;
 
   @NotEmpty(message = "Seleccione al menos un procedimiento")
   private List<String> procedimientos;

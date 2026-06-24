@@ -124,6 +124,7 @@ public class AphService {
     entity.setHallazgos(r.getHallazgos());
     entity.setDiagnosticos(r.getDiagnosticos());
     entity.setLesiones(toJson(r.getLesiones()));
+    entity.setLesionesImagen(r.getLesionesImagen());
     entity.setProcedimientos(toJson(r.getProcedimientos()));
     entity.setMateriales(r.getMateriales());
     entity.setConductor(r.getConductor());
@@ -195,6 +196,7 @@ public class AphService {
         .hallazgos(entity.getHallazgos())
         .diagnosticos(entity.getDiagnosticos())
         .lesiones(fromJson(entity.getLesiones()))
+            .lesionesImagen(entity.getLesionesImagen())
         .procedimientos(fromJson(entity.getProcedimientos()))
         .materiales(entity.getMateriales())
         .conductor(entity.getConductor())

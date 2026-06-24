@@ -59,6 +59,7 @@ public class Aph {
   /* Acompanante */
   private String acompanante;
   private String celularAcompanante;
+  @Column(name = "avisar_a")
   private String avisarA;
   private String parentesco;
   private String numeroParaAvisar;
@@ -83,6 +84,7 @@ public class Aph {
 
   /* Datos traslado */
   private LocalTime horaLlegada;
+  @Column(name = "transportado_a")
   private String transportadoA;
   private String codigoHabilitacion;
   private String departamentoTraslado;
@@ -110,6 +112,9 @@ public class Aph {
   /* Lesiones (JSON o separado por comas) */
   @Column(columnDefinition = "TEXT")
   private String lesiones;
+
+  @Column(columnDefinition = "TEXT")
+  private String lesionesImagen;
 
   /* Procedimientos */
   @Column(columnDefinition = "TEXT")
