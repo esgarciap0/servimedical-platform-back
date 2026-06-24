@@ -14,8 +14,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
     List<String> errors = ex.getBindingResult().getFieldErrors().stream()
-        .map(fe -> fe.getDefaultMessage())
-        .collect(Collectors.toList());
+            .map(fe -> fe.getDefaultMessage())
+            .collect(Collectors.toList());
     return ResponseEntity.badRequest().body(new ErrorResponse("Faltan datos por llenar", errors));
   }
 
@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
       return ResponseEntity.badRequest().body(new ErrorResponse(msg, List.of()));
     }
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(new ErrorResponse("Error interno: " + msg, List.of()));
+            .body(new ErrorResponse("Error interno: " + msg, List.of()));
   }
 
   public record ErrorResponse(String message, List<String> fields) {}

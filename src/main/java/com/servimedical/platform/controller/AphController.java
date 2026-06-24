@@ -58,8 +58,8 @@ public class AphController {
   public ResponseEntity<ByteArrayResource> downloadPdf(@PathVariable Long id) {
     var resource = pdfService.generatePdf(id);
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=aph_" + id + ".pdf")
-        .contentType(MediaType.APPLICATION_PDF)
-        .body(resource);
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=aph_" + id + ".pdf")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(resource);
   }
 }

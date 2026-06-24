@@ -27,30 +27,30 @@ public class PdfService {
   private final AphRepository repository;
   private final AphService aphService;
 
-  private final PDType1Font bold = new PDType1Font(Standard14Fonts.FontName.TIMES_BOLD);
-  private final PDType1Font normal = new PDType1Font(Standard14Fonts.FontName.TIMES_ROMAN);
+  private final PDType1Font bold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+  private final PDType1Font normal = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
 
   private static final float PAGE_WIDTH = PDRectangle.A4.getWidth();
   private static final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
 
-  private static final float MARGIN_X = 10f;
+  private static final float MARGIN_X = 14f;
   private static final float CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);
 
-  private static final float SECTION_HEIGHT = 10f;
+  private static final float SECTION_HEIGHT = 9f;
 
-  private static final float LABEL_HEIGHT = 7.5f;
-  private static final float LABEL_VALUE_GAP = 2.8f;
-  private static final float VALUE_HEIGHT = 9.5f;
+  private static final float LABEL_HEIGHT = 7.2f;
+  private static final float LABEL_VALUE_GAP = 1.8f;
+  private static final float VALUE_HEIGHT = 9.8f;
   private static final float ROW_HEIGHT = LABEL_HEIGHT + LABEL_VALUE_GAP + VALUE_HEIGHT;
 
-  private static final float TITLE_FONT = 11.5f;
-  private static final float HEADER_FONT = 7f;
-  private static final float SECTION_FONT = 6.6f;
-  private static final float LABEL_FONT = 5.8f;
-  private static final float VALUE_FONT = 5.4f;
-  private static final float FIELD_RADIUS = 2.2f;
+  private static final float TITLE_FONT = 12f;
+  private static final float HEADER_FONT = 7.2f;
+  private static final float SECTION_FONT = 6.3f;
+  private static final float LABEL_FONT = 5.9f;
+  private static final float VALUE_FONT = 6.0f;
+  private static final float FIELD_RADIUS = 1.9f;
   private static final float FIELD_LINE_WIDTH = 0.25f;
-  private static final float GRAY = 0.64f;
+  private static final float GRAY = 0.76f;
 
   public PdfService(AphRepository repository, AphService aphService) {
     this.repository = repository;
@@ -91,11 +91,11 @@ public class PdfService {
 
   private float drawHeader(PDPageContentStream cs, PDDocument doc, float y, Aph aph) throws Exception {
     float headerTop = y;
-    float logoWidth = 58f;
-    float logoHeight = 50f;
+    float logoWidth = 50f;
+    float logoHeight = 43f;
 
-    float logoX = MARGIN_X + 46f;
-    float logoY = headerTop - 58f;
+    float logoX = MARGIN_X + 42f;
+    float logoY = headerTop - 51f;
 
     try {
       PDImageXObject logo = loadImage(doc, "static/logo.png");
@@ -109,7 +109,7 @@ public class PdfService {
             cs,
             "ATENCIÓN PRE-HOSPITALARIA",
             PAGE_WIDTH / 2f,
-            headerTop - 24f
+            headerTop - 22f
     );
 
     setFont(cs, bold, 8.5f);
@@ -119,7 +119,7 @@ public class PdfService {
 
     setFont(cs, bold, HEADER_FONT);
 
-    float infoY = headerTop - 72f;
+    float infoY = headerTop - 64f;
 
     drawText(cs, MARGIN_X + 4f, infoY, "Placa:");
     drawText(cs, MARGIN_X + 34f, infoY, nvl(aph.getPlaca()));
@@ -127,7 +127,7 @@ public class PdfService {
     drawText(cs, PAGE_WIDTH / 2f - 80f, infoY, "Movil:");
     drawText(cs, PAGE_WIDTH / 2f - 44f, infoY, nvl(aph.getMovil()));
 
-    return headerTop - 84f;
+    return headerTop - 75f;
   }
 
   private float drawPatientData(PDPageContentStream cs, float y, Aph aph) throws Exception {
@@ -230,7 +230,7 @@ public class PdfService {
           throws Exception {
     y = section(cs, y, "UBICACION DE LAS LESIONES");
 
-    float panelHeight = 150f;
+    float panelHeight = 136f;
     drawBorder(cs, MARGIN_X, y - panelHeight, CONTENT_WIDTH, panelHeight);
 
     if (aph.getLesionesImagen() != null && !aph.getLesionesImagen().isBlank()) {
@@ -256,8 +256,8 @@ public class PdfService {
             "aph-body-map.png"
     );
 
-    float imageWidth = 210f;
-    float imageHeight = 135f;
+    float imageWidth = 195f;
+    float imageHeight = 122f;
     float imageX = (PAGE_WIDTH - imageWidth) / 2f;
     float imageY = panelTopY - imageHeight - 7f;
 
@@ -282,7 +282,7 @@ public class PdfService {
             y,
             "Diagnostico CIE10",
             nvl(aph.getDiagnosticos()),
-            18f
+            16f
     );
 
     return findingsRow(
@@ -290,7 +290,7 @@ public class PdfService {
             y,
             "Describa sus\nhallazgos",
             nvl(aph.getHallazgos()),
-            48f
+            42f
     );
   }
 
@@ -298,12 +298,12 @@ public class PdfService {
     y = section(cs, y, "PROCEDIMIENTOS REALIZADOS");
 
     String procedures = joinList(aphService.toResponse(aph).getProcedimientos());
-    return singleValueRow(cs, y, procedures, 15f);
+    return singleValueRow(cs, y, procedures, 13f);
   }
 
   private float drawMaterials(PDPageContentStream cs, float y, Aph aph) throws Exception {
     y = section(cs, y, "MATERIALES Y DROGAS UTILIZADAS");
-    return singleValueRow(cs, y, nvl(aph.getMateriales()), 15f);
+    return singleValueRow(cs, y, nvl(aph.getMateriales()), 13f);
   }
 
   private float drawSignatures(PDPageContentStream cs, float y, Aph aph) throws Exception {
@@ -317,7 +317,7 @@ public class PdfService {
             cell("Quien recibe al paciente", joinPersonDoc(aph.getMedico(), aph.getDocumentoMedico()), 1)
     );
 
-    float signatureHeight = 58f;
+    float signatureHeight = 55f;
 
     for (int i = 0; i < 3; i++) {
       float x = MARGIN_X + (i * colW);
@@ -377,7 +377,7 @@ public class PdfService {
               cs,
               cell.label(),
               x + (width / 2f),
-              y - 5.6f
+              y - 5.2f
       );
 
       // Small gap between label and value box
@@ -398,7 +398,7 @@ public class PdfService {
               cs,
               trimToWidth(cell.value(), width - 6f, VALUE_FONT),
               x + (width / 2f),
-              valueBoxY + 3.2f
+              valueBoxY + 3.1f
       );
 
       x += width;
@@ -504,8 +504,8 @@ public class PdfService {
       drawCenteredText(cs, labelLines[i], MARGIN_X + (labelW / 2f), y - 15f - (i * 8f));
     }
 
-    setFont(cs, bold, 5.8f);
-    writeWrapped(cs, MARGIN_X + labelW + 4f, y - 9f, valueW - 8f, value, 6, 7f);
+    setFont(cs, normal, 6.0f);
+    writeWrapped(cs, MARGIN_X + labelW + 4f, y - 9f, valueW - 8f, value, 5, 7f);
 
     return y - height;
   }
@@ -531,7 +531,7 @@ public class PdfService {
 
     drawBorder(cs, MARGIN_X, y - height, CONTENT_WIDTH, height);
 
-    setFont(cs, normal, 5.8f);
+    setFont(cs, normal, 6.0f);
     drawText(
             cs,
             MARGIN_X + 4f,
@@ -735,7 +735,7 @@ public class PdfService {
     }
   }
 
-  /* Dibuja un pol�gono relleno en rojo semitransparente sobre la zona afectada */
+  /* Draws a red filled polygon over the affected body zone. */
   private void drawFilledPolygon(PDPageContentStream cs, float[][] polygon,
                                  float imageX, float imageY,
                                  float imageWidth, float imageHeight) throws Exception {
@@ -763,7 +763,7 @@ public class PdfService {
     cs.restoreGraphicsState();
   }
 
-  /* Resuelve el nombre normalizado de una lesi�n al identificador de una zona corporal */
+  /* Resolves a normalized injury name to a body zone identifier. */
   private String resolveBodyZone(String normalized) {
     if (normalized.contains("cabeza") || normalized.contains("cara") || normalized.contains("cuello")) {
       return "cabeza";
@@ -799,87 +799,87 @@ public class PdfService {
     return null;
   }
 
-  /* Retorna un mapa de zonas corporales con sus pol�gonos en coordenadas relativas (0-1) */
+  /* Returns body zone polygons using relative coordinates from 0 to 1. */
   private java.util.Map<String, float[][]> getBodyZonePolygons() {
     java.util.Map<String, float[][]> zones = new java.util.HashMap<>();
 
     zones.put("cabeza", new float[][]{
-        {0.30f, 0.86f}, {0.42f, 0.86f}, {0.45f, 0.78f}, {0.44f, 0.70f},
-        {0.40f, 0.64f}, {0.33f, 0.63f}, {0.28f, 0.66f}, {0.26f, 0.72f},
-        {0.24f, 0.80f}, {0.27f, 0.85f}
+            {0.30f, 0.86f}, {0.42f, 0.86f}, {0.45f, 0.78f}, {0.44f, 0.70f},
+            {0.40f, 0.64f}, {0.33f, 0.63f}, {0.28f, 0.66f}, {0.26f, 0.72f},
+            {0.24f, 0.80f}, {0.27f, 0.85f}
     });
 
     zones.put("torax", new float[][]{
-        {0.22f, 0.62f}, {0.28f, 0.60f}, {0.32f, 0.50f}, {0.34f, 0.38f},
-        {0.32f, 0.28f}, {0.28f, 0.20f}, {0.24f, 0.18f}, {0.20f, 0.20f},
-        {0.16f, 0.26f}, {0.14f, 0.36f}, {0.14f, 0.48f}, {0.16f, 0.58f},
-        {0.18f, 0.62f}
+            {0.22f, 0.62f}, {0.28f, 0.60f}, {0.32f, 0.50f}, {0.34f, 0.38f},
+            {0.32f, 0.28f}, {0.28f, 0.20f}, {0.24f, 0.18f}, {0.20f, 0.20f},
+            {0.16f, 0.26f}, {0.14f, 0.36f}, {0.14f, 0.48f}, {0.16f, 0.58f},
+            {0.18f, 0.62f}
     });
 
     zones.put("abdomen", new float[][]{
-        {0.22f, 0.28f}, {0.28f, 0.26f}, {0.34f, 0.24f}, {0.38f, 0.22f},
-        {0.40f, 0.18f}, {0.38f, 0.14f}, {0.34f, 0.12f}, {0.28f, 0.12f},
-        {0.22f, 0.14f}, {0.18f, 0.18f}, {0.16f, 0.22f}, {0.18f, 0.26f}
+            {0.22f, 0.28f}, {0.28f, 0.26f}, {0.34f, 0.24f}, {0.38f, 0.22f},
+            {0.40f, 0.18f}, {0.38f, 0.14f}, {0.34f, 0.12f}, {0.28f, 0.12f},
+            {0.22f, 0.14f}, {0.18f, 0.18f}, {0.16f, 0.22f}, {0.18f, 0.26f}
     });
 
     zones.put("brazo_derecho", new float[][]{
-        {0.42f, 0.60f}, {0.48f, 0.56f}, {0.54f, 0.50f}, {0.58f, 0.44f},
-        {0.60f, 0.38f}, {0.58f, 0.32f}, {0.54f, 0.28f}, {0.48f, 0.26f},
-        {0.44f, 0.28f}, {0.40f, 0.32f}, {0.38f, 0.38f}, {0.38f, 0.46f},
-        {0.38f, 0.54f}, {0.40f, 0.58f}
+            {0.42f, 0.60f}, {0.48f, 0.56f}, {0.54f, 0.50f}, {0.58f, 0.44f},
+            {0.60f, 0.38f}, {0.58f, 0.32f}, {0.54f, 0.28f}, {0.48f, 0.26f},
+            {0.44f, 0.28f}, {0.40f, 0.32f}, {0.38f, 0.38f}, {0.38f, 0.46f},
+            {0.38f, 0.54f}, {0.40f, 0.58f}
     });
 
     zones.put("brazo_izquierdo", new float[][]{
-        {0.10f, 0.60f}, {0.12f, 0.56f}, {0.08f, 0.50f}, {0.06f, 0.44f},
-        {0.04f, 0.38f}, {0.04f, 0.32f}, {0.06f, 0.28f}, {0.10f, 0.26f},
-        {0.14f, 0.28f}, {0.16f, 0.32f}, {0.18f, 0.38f}, {0.18f, 0.46f},
-        {0.16f, 0.54f}, {0.14f, 0.58f}
+            {0.10f, 0.60f}, {0.12f, 0.56f}, {0.08f, 0.50f}, {0.06f, 0.44f},
+            {0.04f, 0.38f}, {0.04f, 0.32f}, {0.06f, 0.28f}, {0.10f, 0.26f},
+            {0.14f, 0.28f}, {0.16f, 0.32f}, {0.18f, 0.38f}, {0.18f, 0.46f},
+            {0.16f, 0.54f}, {0.14f, 0.58f}
     });
 
     zones.put("cadera", new float[][]{
-        {0.20f, 0.18f}, {0.28f, 0.16f}, {0.36f, 0.16f}, {0.42f, 0.18f},
-        {0.44f, 0.14f}, {0.42f, 0.10f}, {0.36f, 0.08f}, {0.28f, 0.08f},
-        {0.20f, 0.10f}, {0.18f, 0.14f}
+            {0.20f, 0.18f}, {0.28f, 0.16f}, {0.36f, 0.16f}, {0.42f, 0.18f},
+            {0.44f, 0.14f}, {0.42f, 0.10f}, {0.36f, 0.08f}, {0.28f, 0.08f},
+            {0.20f, 0.10f}, {0.18f, 0.14f}
     });
 
     zones.put("muslo_derecho", new float[][]{
-        {0.36f, 0.12f}, {0.42f, 0.10f}, {0.48f, 0.08f}, {0.52f, 0.06f},
-        {0.54f, 0.04f}, {0.52f, 0.02f}, {0.48f, 0.00f}, {0.42f, 0.00f},
-        {0.36f, 0.02f}, {0.32f, 0.04f}, {0.30f, 0.08f}
+            {0.36f, 0.12f}, {0.42f, 0.10f}, {0.48f, 0.08f}, {0.52f, 0.06f},
+            {0.54f, 0.04f}, {0.52f, 0.02f}, {0.48f, 0.00f}, {0.42f, 0.00f},
+            {0.36f, 0.02f}, {0.32f, 0.04f}, {0.30f, 0.08f}
     });
 
     zones.put("muslo_izquierdo", new float[][]{
-        {0.12f, 0.12f}, {0.14f, 0.10f}, {0.12f, 0.08f}, {0.08f, 0.06f},
-        {0.06f, 0.04f}, {0.04f, 0.02f}, {0.02f, 0.00f}, {0.06f, 0.00f},
-        {0.12f, 0.02f}, {0.14f, 0.04f}, {0.16f, 0.08f}, {0.18f, 0.12f}
+            {0.12f, 0.12f}, {0.14f, 0.10f}, {0.12f, 0.08f}, {0.08f, 0.06f},
+            {0.06f, 0.04f}, {0.04f, 0.02f}, {0.02f, 0.00f}, {0.06f, 0.00f},
+            {0.12f, 0.02f}, {0.14f, 0.04f}, {0.16f, 0.08f}, {0.18f, 0.12f}
     });
 
     zones.put("rodilla_derecha", new float[][]{
-        {0.34f, 0.06f}, {0.38f, 0.04f}, {0.42f, 0.02f},
-        {0.44f, 0.00f}, {0.42f, -0.02f}, {0.38f, -0.04f},
-        {0.34f, -0.04f}, {0.30f, -0.02f}, {0.28f, 0.00f},
-        {0.28f, 0.02f}, {0.30f, 0.04f}
+            {0.34f, 0.06f}, {0.38f, 0.04f}, {0.42f, 0.02f},
+            {0.44f, 0.00f}, {0.42f, -0.02f}, {0.38f, -0.04f},
+            {0.34f, -0.04f}, {0.30f, -0.02f}, {0.28f, 0.00f},
+            {0.28f, 0.02f}, {0.30f, 0.04f}
     });
 
     zones.put("rodilla_izquierda", new float[][]{
-        {0.14f, 0.06f}, {0.12f, 0.04f}, {0.10f, 0.02f},
-        {0.08f, 0.00f}, {0.10f, -0.02f}, {0.14f, -0.04f},
-        {0.18f, -0.04f}, {0.22f, -0.02f}, {0.24f, 0.00f},
-        {0.24f, 0.02f}, {0.20f, 0.04f}
+            {0.14f, 0.06f}, {0.12f, 0.04f}, {0.10f, 0.02f},
+            {0.08f, 0.00f}, {0.10f, -0.02f}, {0.14f, -0.04f},
+            {0.18f, -0.04f}, {0.22f, -0.02f}, {0.24f, 0.00f},
+            {0.24f, 0.02f}, {0.20f, 0.04f}
     });
 
     zones.put("pierna_derecha", new float[][]{
-        {0.34f, -0.04f}, {0.40f, -0.06f}, {0.46f, -0.08f},
-        {0.48f, -0.12f}, {0.46f, -0.16f}, {0.42f, -0.20f},
-        {0.38f, -0.22f}, {0.34f, -0.22f}, {0.30f, -0.20f},
-        {0.28f, -0.16f}, {0.28f, -0.12f}, {0.30f, -0.08f}
+            {0.34f, -0.04f}, {0.40f, -0.06f}, {0.46f, -0.08f},
+            {0.48f, -0.12f}, {0.46f, -0.16f}, {0.42f, -0.20f},
+            {0.38f, -0.22f}, {0.34f, -0.22f}, {0.30f, -0.20f},
+            {0.28f, -0.16f}, {0.28f, -0.12f}, {0.30f, -0.08f}
     });
 
     zones.put("pierna_izquierda", new float[][]{
-        {0.14f, -0.04f}, {0.12f, -0.06f}, {0.08f, -0.08f},
-        {0.06f, -0.12f}, {0.06f, -0.16f}, {0.08f, -0.20f},
-        {0.12f, -0.22f}, {0.16f, -0.22f}, {0.20f, -0.20f},
-        {0.22f, -0.16f}, {0.22f, -0.12f}, {0.20f, -0.08f}
+            {0.14f, -0.04f}, {0.12f, -0.06f}, {0.08f, -0.08f},
+            {0.06f, -0.12f}, {0.06f, -0.16f}, {0.08f, -0.20f},
+            {0.12f, -0.22f}, {0.16f, -0.22f}, {0.20f, -0.20f},
+            {0.22f, -0.16f}, {0.22f, -0.12f}, {0.20f, -0.08f}
     });
 
     return zones;
@@ -1018,7 +1018,7 @@ public class PdfService {
   }
 
   private static String fullName(Aph aph) {
-    return (nvl(aph.getPrimerNombre()) + " " + nvl(aph.getPrimerApellido())).trim();
+    return (nvl(aph.getPrimerNombre()) + " " + nvl(aph.getSegundoNombre()) + " " + nvl(aph.getPrimerApellido()) + " " + nvl(aph.getSegundoApellido())).trim().replaceAll("\\s+", " ");
   }
 
   private static String joinList(List<String> values) {
