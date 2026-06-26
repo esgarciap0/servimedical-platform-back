@@ -96,6 +96,7 @@ public class AphResponse {
   private String planBeneficios;
 
   private LocalDate fechaAceptacion;
+  private LocalTime horaAceptacion;
   private LocalTime horaLlegada;
   private String transportadoA;
   private String codigoHabilitacion;

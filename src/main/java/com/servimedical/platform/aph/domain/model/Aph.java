@@ -112,6 +112,7 @@ public class Aph {
 
   /* Datos traslado */
   private LocalDate fechaAceptacion;
+  private LocalTime horaAceptacion;
   private LocalTime horaLlegada;
   private String transportadoA;
   private String codigoHabilitacion;

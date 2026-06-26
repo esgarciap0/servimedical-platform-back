@@ -133,6 +133,7 @@ public class AphJpaEntity {
   private String planBeneficios;
 
   private LocalDate fechaAceptacion;
+  private LocalTime horaAceptacion;
   private LocalTime horaLlegada;
   @Column(name = "transportado_a")
   private String transportadoA;

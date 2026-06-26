@@ -135,6 +135,7 @@ public class AphRequest {
   private String planBeneficios;
 
   private LocalDate fechaAceptacion;
+  private LocalTime horaAceptacion;
   @NotNull(message = "Hora de llegada es obligatorio")
   private LocalTime horaLlegada;
   @NotBlank(message = "Transportado a es obligatorio")
