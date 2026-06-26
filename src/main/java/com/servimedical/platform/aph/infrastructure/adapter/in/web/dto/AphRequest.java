@@ -19,6 +19,7 @@ public class AphRequest {
   private String movil;
   @NotBlank(message = "Placa es obligatorio")
   private String placa;
+  private String esAtencionInicialPacienteRemitidoOControl;
   @NotBlank(message = "Traslado es obligatorio")
   private String traslado;
   @NotBlank(message = "Tipo de traslado es obligatorio")

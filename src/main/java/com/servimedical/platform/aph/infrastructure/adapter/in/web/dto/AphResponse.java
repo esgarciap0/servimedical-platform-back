@@ -17,6 +17,7 @@ public class AphResponse {
   private String codigo;
   private String movil;
   private String placa;
+  private String esAtencionInicialPacienteRemitidoOControl;
   private String traslado;
   private String tipoTraslado;
   private String prioridad;

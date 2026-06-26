@@ -36,6 +36,8 @@ public class AphJpaEntity {
   private String codigo;
   private String movil;
   private String placa;
+  @Column(length = 1)
+  private String esAtencionInicialPacienteRemitidoOControl;
   private String traslado;
   private String tipoTraslado;
   private String prioridad;
