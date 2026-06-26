@@ -41,6 +41,15 @@ public class AphResponse {
   private String direccionResidenciaPropietario;
   private String telefonoResidenciaPropietario;
   private String codigoMunicipioResidenciaPropietario;
+  private String tipoDocumentoConductorVehiculo;
+  private String numeroDocumentoConductorVehiculo;
+  private String primerNombreConductorVehiculo;
+  private String segundoNombreConductorVehiculo;
+  private String primerApellidoConductorVehiculo;
+  private String segundoApellidoConductorVehiculo;
+  private String codigoMunicipioResidenciaConductorVehiculo;
+  private String direccionResidenciaConductorVehiculo;
+  private String telefonoResidenciaConductorVehiculo;
   private String descripcionOtroEvento;
   private String condicionVictima;
   private String codigoMunicipioOcurrencia;
