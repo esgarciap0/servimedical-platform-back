@@ -111,6 +111,7 @@ public class Aph {
   private String planBeneficios;
 
   /* Datos traslado */
+  private LocalDate fechaAceptacion;
   private LocalTime horaLlegada;
   private String transportadoA;
   private String codigoHabilitacion;

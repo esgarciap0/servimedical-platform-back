@@ -132,6 +132,7 @@ public class AphJpaEntity {
   private String poliza;
   private String planBeneficios;
 
+  private LocalDate fechaAceptacion;
   private LocalTime horaLlegada;
   @Column(name = "transportado_a")
   private String transportadoA;
