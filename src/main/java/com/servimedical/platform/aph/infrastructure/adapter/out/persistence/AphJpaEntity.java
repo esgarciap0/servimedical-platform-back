@@ -137,6 +137,8 @@ public class AphJpaEntity {
   private String transportadoA;
   @Column(length = 12)
   private String codigoHabilitacion;
+  @Column(length = 12)
+  private String codigoHabilitacionPrestadorRecibe;
   private String departamentoTraslado;
   private String ciudadTransporte;
   private String estadoPaciente;

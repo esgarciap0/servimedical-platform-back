@@ -98,6 +98,7 @@ public class AphResponse {
   private LocalTime horaLlegada;
   private String transportadoA;
   private String codigoHabilitacion;
+  private String codigoHabilitacionPrestadorRecibe;
   private String departamentoTraslado;
   private String ciudadTransporte;
   private String estadoPaciente;

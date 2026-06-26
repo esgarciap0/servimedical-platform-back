@@ -139,6 +139,7 @@ public class AphRequest {
   @NotBlank(message = "Transportado a es obligatorio")
   private String transportadoA;
   private String codigoHabilitacion;
+  private String codigoHabilitacionPrestadorRecibe;
   @NotBlank(message = "Departamento de traslado es obligatorio")
   private String departamentoTraslado;
   @NotBlank(message = "Ciudad de transporte es obligatorio")
