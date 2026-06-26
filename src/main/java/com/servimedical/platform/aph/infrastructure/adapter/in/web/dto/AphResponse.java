@@ -34,6 +34,7 @@ public class AphResponse {
   private String numeroRadicadoSiras;
   private String tipoDocumentoPropietario;
   private String numeroDocumentoPropietario;
+  private String primerNombrePropietario;
   private String descripcionOtroEvento;
   private String condicionVictima;
   private String codigoMunicipioOcurrencia;

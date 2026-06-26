@@ -53,6 +53,8 @@ public class AphJpaEntity {
   private String numeroRadicadoSiras;
   private String tipoDocumentoPropietario;
   private String numeroDocumentoPropietario;
+  @Column(length = 30)
+  private String primerNombrePropietario;
   private String descripcionOtroEvento;
   private String condicionVictima;
   private String codigoMunicipioOcurrencia;
