@@ -1,0 +1,25 @@
+﻿refactor(aph): reorganizar modulo APH a arquitectura hexagonal
+
+Reorganiza el modulo APH siguiendo arquitectura hexagonal (ports & adapters):
+
+Dominio puro (sin JPA/Spring/Jackson):
+- aph/domain/model/Aph: POJO con List<String> lesiones y procedimientos (antes JSON-string)
+- aph/domain/exception/AphNotFoundException: reemplaza el RuntimeException generico
+- aph/domain/port/in: CreateAphUseCase, FindAphUseCase, UpdateAphUseCase, DeleteAphUseCase, GenerateAphPdfUseCase
+- aph/domain/port/out/AphRepositoryPort
+
+Capa de aplicacion (orquesta los use cases, depende solo de ports):
+- aph/application/service/AphService: implementa los CRUD use cases
+- aph/application/service/AphPdfService: implementa GenerateAphPdfUseCase y elimina el hack de invocar toResponse para deserializar procedimientos
+
+Adaptadores driving y driven:
+- aph/infrastructure/adapter/in/web: AphController + DTOs + AphWebMapper
+- aph/infrastructure/adapter/out/persistence: AphJpaEntity, AphJpaRepository (package-private), AphPersistenceAdapter, AphPersistenceMapper (encapsula la serializacion JSON)
+
+Otros cambios:
+- shared/config: CorsConfig y GlobalExceptionHandler con handler 404 para AphNotFoundException
+- Elimina los packages antiguos: controller, service, repository, entity, dto, config
+
+El servicio de aplicacion ya no realiza mapeos DTO->Entity ni serializacion JSON; cada concern queda en su adaptador correspondiente.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

@@ -1,5 +1,6 @@
-package com.servimedical.platform.config;
+package com.servimedical.platform.shared.config;
 
+import com.servimedical.platform.aph.domain.exception.AphNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,12 @@ public class GlobalExceptionHandler {
             .map(fe -> fe.getDefaultMessage())
             .collect(Collectors.toList());
     return ResponseEntity.badRequest().body(new ErrorResponse("Faltan datos por llenar", errors));
+  }
+
+  @ExceptionHandler(AphNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleNotFound(AphNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ErrorResponse(ex.getMessage(), List.of()));
   }
 
   @ExceptionHandler(RuntimeException.class)

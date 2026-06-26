@@ -1,4 +1,4 @@
-package com.servimedical.platform.dto;
+package com.servimedical.platform.aph.infrastructure.adapter.in.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

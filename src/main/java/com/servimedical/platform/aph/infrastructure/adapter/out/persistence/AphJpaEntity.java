@@ -1,19 +1,38 @@
-package com.servimedical.platform.dto;
+package com.servimedical.platform.aph.infrastructure.adapter.out.persistence;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * JPA persistence entity for APH. Lives in the outbound adapter layer.
+ * The domain model {@link com.servimedical.platform.aph.domain.model.Aph}
+ * is decoupled from this representation.
+ */
+@Entity
+@Table(name = "aph")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class AphResponse {
+public class AphJpaEntity {
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
   private String codigo;
   private String movil;
   private String placa;
@@ -42,6 +61,7 @@ public class AphResponse {
 
   private String acompanante;
   private String celularAcompanante;
+  @Column(name = "avisar_a")
   private String avisarA;
   private String parentesco;
   private String numeroParaAvisar;
@@ -62,6 +82,7 @@ public class AphResponse {
   private String planBeneficios;
 
   private LocalTime horaLlegada;
+  @Column(name = "transportado_a")
   private String transportadoA;
   private String codigoHabilitacion;
   private String departamentoTraslado;
@@ -77,14 +98,25 @@ public class AphResponse {
   private String ro;
   private String rv;
   private String rm;
+
+  @Column(columnDefinition = "TEXT")
   private String hallazgos;
+
+  @Column(columnDefinition = "TEXT")
   private String diagnosticos;
 
-  private List<String> lesiones;
-  private String lesionesImagen;
-  private List<String> procedimientos;
+  @Column(columnDefinition = "TEXT")
+  private String lesiones;
 
+  @Column(columnDefinition = "TEXT")
+  private String lesionesImagen;
+
+  @Column(columnDefinition = "TEXT")
+  private String procedimientos;
+
+  @Column(columnDefinition = "TEXT")
   private String materiales;
+
   private String conductor;
   private String documentoConductor;
   private String paramedico;

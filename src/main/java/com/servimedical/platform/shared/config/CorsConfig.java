@@ -1,4 +1,4 @@
-package com.servimedical.platform.config;
+package com.servimedical.platform.shared.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

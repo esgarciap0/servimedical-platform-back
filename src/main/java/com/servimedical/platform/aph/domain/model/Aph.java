@@ -1,22 +1,19 @@
-package com.servimedical.platform.entity;
+package com.servimedical.platform.aph.domain.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "aph")
+/**
+ * APH (Atención Pre-Hospitalaria) domain model.
+ * Pure POJO — does not depend on JPA, Spring or Jackson.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,8 +21,6 @@ import lombok.Setter;
 @Builder
 public class Aph {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   /* Datos generales */
@@ -56,16 +51,15 @@ public class Aph {
   private String celular;
   private String telefono;
 
-  /* Acompanante */
+  /* Acompañante */
   private String acompanante;
   private String celularAcompanante;
-  @Column(name = "avisar_a")
   private String avisarA;
   private String parentesco;
   private String numeroParaAvisar;
   private String numeroParaAvisar2;
 
-  /* Ubicacion */
+  /* Ubicación */
   private String direccion;
   private String zonaPaciente;
   private String departamento;
@@ -84,7 +78,6 @@ public class Aph {
 
   /* Datos traslado */
   private LocalTime horaLlegada;
-  @Column(name = "transportado_a")
   private String transportadoA;
   private String codigoHabilitacion;
   private String departamentoTraslado;
@@ -94,7 +87,7 @@ public class Aph {
   /* Causa externa */
   private String causaExterna;
 
-  /* Examen fisico */
+  /* Examen físico */
   private String presion;
   private String frecuenciaCardiaca;
   private String frecuenciaRespiratoria;
@@ -103,28 +96,20 @@ public class Aph {
   private String rv;
   private String rm;
 
-  @Column(columnDefinition = "TEXT")
   private String hallazgos;
-
-  @Column(columnDefinition = "TEXT")
   private String diagnosticos;
 
-  /* Lesiones (JSON o separado por comas) */
-  @Column(columnDefinition = "TEXT")
-  private String lesiones;
-
-  @Column(columnDefinition = "TEXT")
+  /* Lesiones */
+  private List<String> lesiones;
   private String lesionesImagen;
 
   /* Procedimientos */
-  @Column(columnDefinition = "TEXT")
-  private String procedimientos;
+  private List<String> procedimientos;
 
   /* Materiales */
-  @Column(columnDefinition = "TEXT")
   private String materiales;
 
-  /* Tripulacion */
+  /* Tripulación */
   private String conductor;
   private String documentoConductor;
   private String paramedico;
@@ -132,7 +117,7 @@ public class Aph {
   private String medico;
   private String documentoMedico;
 
-  /* Auditoria */
+  /* Auditoría */
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }
