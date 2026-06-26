@@ -45,6 +45,7 @@ public class Aph {
   private String tipoDocumentoPropietario;
   private String numeroDocumentoPropietario;
   private String primerNombrePropietario;
+  private String segundoNombrePropietario;
   private String descripcionOtroEvento;
   private String condicionVictima;
   private String codigoMunicipioOcurrencia;
