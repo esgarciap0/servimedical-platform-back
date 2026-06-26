@@ -42,11 +42,26 @@ public class AphJpaEntity {
   private LocalDate fechaAccidente;
   private LocalTime horaAccidente;
   private String lugarOcurrencia;
+  private String naturalezaEvento;
+  private String estadoAseguramiento;
+  private String placaVehiculo;
+  private String tipoVehiculo;
+  private String codigoAseguradora;
+  private String numeroPolizaSoat;
+  private String fechaInicioVigencia;
+  private String fechaFinVigencia;
+  private String numeroRadicadoSiras;
+  private String tipoDocumentoPropietario;
+  private String numeroDocumentoPropietario;
+  private String descripcionOtroEvento;
+  private String condicionVictima;
+  private String codigoMunicipioOcurrencia;
   private String zonaOrigen;
   private String departamentoOrigen;
   private String municipioOrigen;
 
   private String documento;
+  private String tipoDocumento;
   private String primerApellido;
   private String segundoApellido;
   private String primerNombre;
@@ -58,6 +73,7 @@ public class AphJpaEntity {
   private String edad;
   private String celular;
   private String telefono;
+  private String tipoPoblacion;
 
   private String acompanante;
   private String celularAcompanante;
@@ -68,6 +84,7 @@ public class AphJpaEntity {
   private String numeroParaAvisar2;
 
   private String direccion;
+  private String codigoMunicipioResidencia;
   private String zonaPaciente;
   private String departamento;
   private String ciudad;

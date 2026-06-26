@@ -1,25 +1,16 @@
-﻿refactor(aph): reorganizar modulo APH a arquitectura hexagonal
+﻿feat(aph): portar campos SOAT/aseguramiento y tipo de documento al modulo hexagonal
 
-Reorganiza el modulo APH siguiendo arquitectura hexagonal (ports & adapters):
+Incorpora los cambios en progreso que estaban sin commitear en el checkout principal de main, ya adaptados a la nueva arquitectura hexagonal.
 
-Dominio puro (sin JPA/Spring/Jackson):
-- aph/domain/model/Aph: POJO con List<String> lesiones y procedimientos (antes JSON-string)
-- aph/domain/exception/AphNotFoundException: reemplaza el RuntimeException generico
-- aph/domain/port/in: CreateAphUseCase, FindAphUseCase, UpdateAphUseCase, DeleteAphUseCase, GenerateAphPdfUseCase
-- aph/domain/port/out/AphRepositoryPort
+Campos nuevos en el dominio, JPA entity, mappers, DTOs y AphService:
+- Evento / vehiculo: naturalezaEvento, placaVehiculo, tipoVehiculo, descripcionOtroEvento, condicionVictima, codigoMunicipioOcurrencia
+- Aseguramiento SOAT: estadoAseguramiento, codigoAseguradora, numeroPolizaSoat, fechaInicioVigencia, fechaFinVigencia, numeroRadicadoSiras
+- Propietario del vehiculo: tipoDocumentoPropietario, numeroDocumentoPropietario
+- Paciente: tipoDocumento (obligatorio), tipoPoblacion, codigoMunicipioResidencia
 
-Capa de aplicacion (orquesta los use cases, depende solo de ports):
-- aph/application/service/AphService: implementa los CRUD use cases
-- aph/application/service/AphPdfService: implementa GenerateAphPdfUseCase y elimina el hack de invocar toResponse para deserializar procedimientos
-
-Adaptadores driving y driven:
-- aph/infrastructure/adapter/in/web: AphController + DTOs + AphWebMapper
-- aph/infrastructure/adapter/out/persistence: AphJpaEntity, AphJpaRepository (package-private), AphPersistenceAdapter, AphPersistenceMapper (encapsula la serializacion JSON)
-
-Otros cambios:
-- shared/config: CorsConfig y GlobalExceptionHandler con handler 404 para AphNotFoundException
-- Elimina los packages antiguos: controller, service, repository, entity, dto, config
-
-El servicio de aplicacion ya no realiza mapeos DTO->Entity ni serializacion JSON; cada concern queda en su adaptador correspondiente.
+Cambios en AphPdfService:
+- Usa aph.getTipoDocumento() en lugar de la heuristica inferType() basada en la longitud del documento
+- Anade columna "Tipo Poblacion" en la fila de datos del paciente, rebalanceando los spans
+- Elimina el metodo inferType() ya sin uso
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

@@ -31,6 +31,20 @@ public class AphRequest {
   private LocalTime horaAccidente;
   @NotBlank(message = "Lugar de ocurrencia es obligatorio")
   private String lugarOcurrencia;
+  private String naturalezaEvento;
+  private String estadoAseguramiento;
+  private String placaVehiculo;
+  private String tipoVehiculo;
+  private String codigoAseguradora;
+  private String numeroPolizaSoat;
+  private String fechaInicioVigencia;
+  private String fechaFinVigencia;
+  private String numeroRadicadoSiras;
+  private String tipoDocumentoPropietario;
+  private String numeroDocumentoPropietario;
+  private String descripcionOtroEvento;
+  private String condicionVictima;
+  private String codigoMunicipioOcurrencia;
   @NotBlank(message = "Zona de origen es obligatorio")
   private String zonaOrigen;
   @NotBlank(message = "Departamento de origen es obligatorio")
@@ -40,6 +54,8 @@ public class AphRequest {
 
   @NotBlank(message = "Documento es obligatorio")
   private String documento;
+  @NotBlank(message = "Tipo de documento es obligatorio")
+  private String tipoDocumento;
   @NotBlank(message = "Primer apellido es obligatorio")
   private String primerApellido;
   @NotBlank(message = "Segundo apellido es obligatorio")
@@ -62,6 +78,7 @@ public class AphRequest {
   private String celular;
   @NotBlank(message = "Teléfono es obligatorio")
   private String telefono;
+  private String tipoPoblacion;
 
   @NotBlank(message = "Acompañante es obligatorio")
   private String acompanante;
@@ -76,6 +93,7 @@ public class AphRequest {
 
   @NotBlank(message = "Dirección es obligatorio")
   private String direccion;
+  private String codigoMunicipioResidencia;
   @NotBlank(message = "Zona del paciente es obligatorio")
   private String zonaPaciente;
   @NotBlank(message = "Departamento es obligatorio")

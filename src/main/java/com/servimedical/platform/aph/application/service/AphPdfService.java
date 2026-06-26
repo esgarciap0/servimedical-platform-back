@@ -132,7 +132,7 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     y = section(cs, y, "DATOS DEL PACIENTE");
 
     y = tableRow(cs, y,
-            cell("Tipo ID", inferType(aph.getDocumento()), 1),
+            cell("Tipo ID", nvl(aph.getTipoDocumento()), 1),
             cell("No. de Identificación", nvl(aph.getDocumento()), 2),
             cell("Nombres y Apellidos", fullName(aph), 4),
             cell("Sexo", nvl(aph.getSexo()), 1),
@@ -153,8 +153,9 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     y = tableRow(cs, y,
             cell("Fecha de Nacimiento", fd(aph.getFechaNacimiento()), 3),
             cell("Edad", nvl(aph.getEdad()), 1),
-            cell("Estado Civil", nvl(aph.getEstadoCivil()), 3),
-            cell("Ocupación", nvl(aph.getOcupacion()), 3),
+            cell("Estado Civil", nvl(aph.getEstadoCivil()), 2),
+            cell("Tipo Población", nvl(aph.getTipoPoblacion()), 2),
+            cell("Ocupación", nvl(aph.getOcupacion()), 2),
             cell("Celular", nvl(aph.getCelular()), 2)
     );
 
@@ -666,16 +667,6 @@ public class AphPdfService implements GenerateAphPdfUseCase {
 
   private static String joinPersonDoc(String name, String document) {
     return (nvl(name) + " " + nvl(document)).trim();
-  }
-
-  private static String inferType(String doc) {
-    if (doc == null || doc.isBlank()) {
-      return "";
-    }
-    int length = doc.length();
-    if (length >= 10) return "CC";
-    if (length >= 6) return "CE";
-    return "TI";
   }
 
   private static String nvl(String value) {
