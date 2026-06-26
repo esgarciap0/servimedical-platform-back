@@ -48,6 +48,9 @@ public class Aph {
   private String segundoNombrePropietario;
   private String primerApellidoPropietario;
   private String segundoApellidoPropietario;
+  private String direccionResidenciaPropietario;
+  private String telefonoResidenciaPropietario;
+  private String codigoMunicipioResidenciaPropietario;
   private String descripcionOtroEvento;
   private String condicionVictima;
   private String codigoMunicipioOcurrencia;

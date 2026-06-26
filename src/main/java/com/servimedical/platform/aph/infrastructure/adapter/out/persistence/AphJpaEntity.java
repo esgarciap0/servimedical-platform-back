@@ -61,6 +61,12 @@ public class AphJpaEntity {
   private String primerApellidoPropietario;
   @Column(length = 30)
   private String segundoApellidoPropietario;
+  @Column(length = 100)
+  private String direccionResidenciaPropietario;
+  @Column(length = 10)
+  private String telefonoResidenciaPropietario;
+  @Column(length = 5)
+  private String codigoMunicipioResidenciaPropietario;
   private String descripcionOtroEvento;
   private String condicionVictima;
   private String codigoMunicipioOcurrencia;
