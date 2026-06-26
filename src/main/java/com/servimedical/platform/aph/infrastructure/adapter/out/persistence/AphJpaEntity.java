@@ -178,6 +178,7 @@ public class AphJpaEntity {
   private String medico;
   @Column(length = 2)
   private String tipoDocumentoProfesionalRecibe;
+  @Column(length = 20)
   private String documentoMedico;
 
   private LocalDateTime createdAt;
