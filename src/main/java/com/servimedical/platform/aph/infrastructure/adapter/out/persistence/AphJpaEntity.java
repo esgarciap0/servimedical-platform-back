@@ -137,6 +137,12 @@ public class AphJpaEntity {
   private LocalTime horaLlegada;
   @Column(length = 1)
   private String tipoServicioTransporte;
+  @Column(length = 12)
+  private String codigoHabilitacionRecibeTransportePrimario;
+  @Column(length = 100)
+  private String direccionOrigenTransportePrimario;
+  @Column(length = 100)
+  private String direccionDestinoTransportePrimario;
   @Column(name = "transportado_a")
   private String transportadoA;
   @Column(length = 12)

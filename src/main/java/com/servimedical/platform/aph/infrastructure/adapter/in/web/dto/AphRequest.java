@@ -139,6 +139,9 @@ public class AphRequest {
   @NotNull(message = "Hora de llegada es obligatorio")
   private LocalTime horaLlegada;
   private String tipoServicioTransporte;
+  private String codigoHabilitacionRecibeTransportePrimario;
+  private String direccionOrigenTransportePrimario;
+  private String direccionDestinoTransportePrimario;
   @NotBlank(message = "Transportado a es obligatorio")
   private String transportadoA;
   private String codigoHabilitacion;

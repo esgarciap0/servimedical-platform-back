@@ -115,6 +115,9 @@ public class Aph {
   private LocalTime horaAceptacion;
   private LocalTime horaLlegada;
   private String tipoServicioTransporte;
+  private String codigoHabilitacionRecibeTransportePrimario;
+  private String direccionOrigenTransportePrimario;
+  private String direccionDestinoTransportePrimario;
   private String transportadoA;
   private String codigoHabilitacion;
   private String codigoHabilitacionPrestadorRecibe;
