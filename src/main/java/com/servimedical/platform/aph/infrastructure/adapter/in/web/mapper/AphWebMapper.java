@@ -118,6 +118,7 @@ public class AphWebMapper {
             .paramedico(r.getParamedico())
             .documentoParamedico(r.getDocumentoParamedico())
             .medico(r.getMedico())
+            .tipoDocumentoProfesionalRecibe(r.getTipoDocumentoProfesionalRecibe())
             .documentoMedico(r.getDocumentoMedico())
             .build();
   }
@@ -229,6 +230,7 @@ public class AphWebMapper {
             .paramedico(aph.getParamedico())
             .documentoParamedico(aph.getDocumentoParamedico())
             .medico(aph.getMedico())
+            .tipoDocumentoProfesionalRecibe(aph.getTipoDocumentoProfesionalRecibe())
             .documentoMedico(aph.getDocumentoMedico())
             .createdAt(aph.getCreatedAt())
             .updatedAt(aph.getUpdatedAt())

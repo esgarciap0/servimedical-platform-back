@@ -125,6 +125,7 @@ public class AphResponse {
   private String paramedico;
   private String documentoParamedico;
   private String medico;
+  private String tipoDocumentoProfesionalRecibe;
   private String documentoMedico;
 
   private LocalDateTime createdAt;

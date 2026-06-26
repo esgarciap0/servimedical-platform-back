@@ -186,6 +186,7 @@ public class AphRequest {
   private String documentoParamedico;
   @NotBlank(message = "Médico es obligatorio")
   private String medico;
+  private String tipoDocumentoProfesionalRecibe;
   @NotBlank(message = "Documento médico es obligatorio")
   private String documentoMedico;
 }

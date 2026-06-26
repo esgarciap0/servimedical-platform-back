@@ -150,6 +150,7 @@ public class Aph {
   private String paramedico;
   private String documentoParamedico;
   private String medico;
+  private String tipoDocumentoProfesionalRecibe;
   private String documentoMedico;
 
   /* Auditoría */
