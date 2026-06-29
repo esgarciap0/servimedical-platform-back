@@ -13,8 +13,6 @@ import lombok.Setter;
 @Setter
 public class AphRequest {
 
-  @NotBlank(message = "Código es obligatorio")
-  private String codigo;
   @NotBlank(message = "Móvil es obligatorio")
   private String movil;
   @NotBlank(message = "Placa es obligatorio")

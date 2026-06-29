@@ -29,9 +29,13 @@ public class AphService
   public Aph create(Aph aph) {
     LocalDateTime now = LocalDateTime.now();
     aph.setId(null);
+    aph.setCodigo(null);
     aph.setCreatedAt(now);
     aph.setUpdatedAt(now);
-    return repository.save(aph);
+    Aph saved = repository.save(aph);
+    // Auto-generate código from the database ID
+    saved.setCodigo(String.valueOf(saved.getId()));
+    return repository.save(saved);
   }
 
   @Override
@@ -65,7 +69,7 @@ public class AphService
   }
 
   private void applyChanges(Aph target, Aph src) {
-    target.setCodigo(src.getCodigo());
+    // codigo is not modifiable — it is auto-generated on creation
     target.setMovil(src.getMovil());
     target.setPlaca(src.getPlaca());
     target.setTraslado(src.getTraslado());
