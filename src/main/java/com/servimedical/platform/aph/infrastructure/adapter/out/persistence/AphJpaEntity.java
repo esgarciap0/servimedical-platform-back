@@ -33,6 +33,7 @@ public class AphJpaEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @Column(unique = true)
   private String codigo;
   private String movil;
   private String placa;

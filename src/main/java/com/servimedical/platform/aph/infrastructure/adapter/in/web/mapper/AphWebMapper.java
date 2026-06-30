@@ -17,7 +17,6 @@ public class AphWebMapper {
       return null;
     }
     return Aph.builder()
-            .codigo(r.getCodigo())
             .movil(r.getMovil())
             .placa(r.getPlaca())
             .esAtencionInicialPacienteRemitidoOControl(r.getEsAtencionInicialPacienteRemitidoOControl())
