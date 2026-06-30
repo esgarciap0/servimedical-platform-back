@@ -639,40 +639,56 @@ public class AphPdfService implements GenerateAphPdfUseCase {
       if (norm.isEmpty()) {
         continue;
       }
+      String[] tokens = norm.split(":");
+      if (tokens.length >= 2) {
+        if ("FRONT".equals(tokens[0]) && !frontView) {
+          continue;
+        }
+        if ("BACK".equals(tokens[0]) && frontView) {
+          continue;
+        }
+      }
       // Lateralidad: -1 = izquierda (visual), 0 = central, +1 = derecha (visual).
       int side = 0;
       boolean isRight = norm.contains("DERECH");
       boolean isLeft = norm.contains("IZQUIERD");
+      if (norm.contains("RIGHT")) isRight = true;
+      if (norm.contains("LEFT")) isLeft = true;
       if (isRight) side = frontView ? +1 : -1; // mirror on dorsal view
       if (isLeft) side = frontView ? -1 : +1;
 
       // Region detection (first match wins; head/face takes priority over generic).
       Float[] zone = null;
       if (norm.contains("CABEZA") || norm.contains("CRANEO") || norm.contains("FRONTAL")
-              || norm.contains("CARA")) {
+              || norm.contains("CARA") || norm.contains("HEAD") || norm.contains("FACE")) {
         zone = new Float[]{0f, 0.40f, 0.18f, 0.16f};
-      } else if (norm.contains("CUELLO") || norm.contains("CERVICAL")) {
+      } else if (norm.contains("CUELLO") || norm.contains("CERVICAL") || norm.contains("NECK")) {
         zone = new Float[]{0f, 0.29f, 0.12f, 0.05f};
-      } else if (norm.contains("HOMBRO")) {
+      } else if (norm.contains("HOMBRO") || norm.contains("SHOULDER")) {
         zone = new Float[]{side * 0.16f, 0.26f, 0.10f, 0.06f};
-      } else if (norm.contains("BRAZO") || norm.contains("HUMERO")) {
+      } else if (norm.contains("BRAZO") || norm.contains("HUMERO") || norm.contains("ARM")) {
         zone = new Float[]{side * 0.22f, 0.16f, 0.08f, 0.12f};
-      } else if (norm.contains("ANTEBRAZO") || norm.contains("MUNECA") || norm.contains("MANO")) {
+      } else if (norm.contains("ANTEBRAZO") || norm.contains("MUNECA") || norm.contains("MANO")
+              || norm.contains("FOREARM") || norm.contains("WRIST") || norm.contains("HAND")) {
         zone = new Float[]{side * 0.28f, -0.02f, 0.08f, 0.10f};
       } else if (norm.contains("TORAX") || norm.contains("TORACI") || norm.contains("HEMITORA")
-              || norm.contains("COSTILLA") || norm.contains("PECHO")) {
+              || norm.contains("COSTILLA") || norm.contains("PECHO")
+              || norm.contains("CHEST") || norm.contains("THORAX") || norm.contains("RIB")) {
         zone = new Float[]{side * 0.06f, 0.18f, 0.20f, 0.12f};
       } else if (norm.contains("ABDOMEN") || norm.contains("VIENTRE")) {
         zone = new Float[]{side * 0.04f, 0.04f, 0.18f, 0.10f};
-      } else if (norm.contains("ESPALDA") || norm.contains("LUMBAR") || norm.contains("DORSAL")) {
+      } else if (norm.contains("ESPALDA") || norm.contains("LUMBAR") || norm.contains("DORSAL")
+              || norm.contains("BACK")) {
         zone = new Float[]{side * 0.04f, 0.10f, 0.20f, 0.16f};
-      } else if (norm.contains("CADERA") || norm.contains("PELVIS")) {
+      } else if (norm.contains("CADERA") || norm.contains("PELVIS") || norm.contains("HIP")) {
         zone = new Float[]{side * 0.05f, -0.10f, 0.18f, 0.08f};
-      } else if (norm.contains("RODILLA")) {
+      } else if (norm.contains("RODILLA") || norm.contains("KNEE")) {
         zone = new Float[]{side * 0.06f, -0.28f, 0.07f, 0.05f};
-      } else if (norm.contains("MUSLO") || norm.contains("FEMUR") || norm.contains("PIERNA")) {
+      } else if (norm.contains("MUSLO") || norm.contains("FEMUR") || norm.contains("PIERNA")
+              || norm.contains("THIGH") || norm.contains("LEG")) {
         zone = new Float[]{side * 0.06f, -0.22f, 0.07f, 0.10f};
-      } else if (norm.contains("TOBILLO") || norm.contains("PIE")) {
+      } else if (norm.contains("TOBILLO") || norm.contains("PIE")
+              || norm.contains("ANKLE") || norm.contains("FOOT")) {
         zone = new Float[]{side * 0.06f, -0.44f, 0.08f, 0.05f};
       }
 
