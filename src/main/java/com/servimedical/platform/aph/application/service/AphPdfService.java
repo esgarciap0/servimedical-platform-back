@@ -40,10 +40,10 @@ public class AphPdfService implements GenerateAphPdfUseCase {
   private static final float MARGIN_X = 14f;
   private static final float CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);
 
-  private static final float SECTION_HEIGHT = 10.5f;
+  private static final float SECTION_HEIGHT = 11f;
 
   private static final float LABEL_HEIGHT = 7.6f;
-  private static final float LABEL_VALUE_GAP = 1.6f;
+  private static final float LABEL_VALUE_GAP = 1.4f;
   private static final float VALUE_HEIGHT = 13f;
   private static final float ROW_HEIGHT = LABEL_HEIGHT + LABEL_VALUE_GAP + VALUE_HEIGHT;
 
@@ -53,17 +53,20 @@ public class AphPdfService implements GenerateAphPdfUseCase {
   private static final float LABEL_FONT = 6.2f;
   private static final float VALUE_FONT = 7.4f;
   private static final float FIELD_RADIUS = 2.0f;
-  private static final float FIELD_LINE_WIDTH = 0.7f;
-  private static final float SECTION_BORDER_WIDTH = 0.35f;
+  private static final float FIELD_LINE_WIDTH = 0.5f;
+  private static final float SECTION_BORDER_WIDTH = 0.5f;
 
-  // Light gray for section headers (matches official APH form).
-  private static final float SECTION_GRAY = 0.90f;
-  // Very subtle gray fill behind value cells to give a pulished/input look.
-  private static final float FIELD_FILL_GRAY = 0.975f;
-  // Soft drop-shadow gray under value cells.
-  private static final float FIELD_SHADOW_GRAY = 0.86f;
-  // Medium-gray stroke for value cell borders (matches reference screenshot).
-  private static final float FIELD_BORDER_GRAY = 0.60f;
+  // Cell padding (used everywhere to avoid text touching borders).
+  private static final float CELL_PAD_X = 3f;
+
+  // Section bar background.
+  private static final float SECTION_GRAY = 0.82f;
+  // Light gray border for value cells (matches reference screenshot).
+  private static final float FIELD_BORDER_GRAY = 0.78f;
+  // Red used to highlight injured zones on the body silhouettes.
+  private static final float INJURY_R = 0.85f;
+  private static final float INJURY_G = 0.10f;
+  private static final float INJURY_B = 0.10f;
 
   public AphPdfService(AphRepositoryPort repository) {
     this.repository = repository;
@@ -103,28 +106,14 @@ public class AphPdfService implements GenerateAphPdfUseCase {
 
   private float drawHeader(PDPageContentStream cs, PDDocument doc, float y, Aph aph) throws Exception {
     float headerTop = y;
-    float headerHeight = 60f;
+    float headerHeight = 56f;
     float headerBottom = headerTop - headerHeight;
 
-    // Outer header frame with two internal dividers (logo | title | version).
-    float logoColW = 70f;
-    float versionColW = 95f;
-
-    drawBorder(cs, MARGIN_X, headerBottom, CONTENT_WIDTH, headerHeight);
-    cs.setStrokingColor(FIELD_BORDER_GRAY, FIELD_BORDER_GRAY, FIELD_BORDER_GRAY);
-    cs.setLineWidth(SECTION_BORDER_WIDTH);
-    cs.moveTo(MARGIN_X + logoColW, headerBottom);
-    cs.lineTo(MARGIN_X + logoColW, headerTop);
-    cs.stroke();
-    cs.moveTo(MARGIN_X + CONTENT_WIDTH - versionColW, headerBottom);
-    cs.lineTo(MARGIN_X + CONTENT_WIDTH - versionColW, headerTop);
-    cs.stroke();
-    resetColor(cs);
-
-    // Logo placed in the top-left cell of the header, scaled to fit.
-    float logoBoxX = MARGIN_X + 4f;
+    // Logo placed in the top-left, scaled to fit a fixed bounding box. No outer
+    // frame and no internal dividers — the elements float freely.
+    float logoBoxX = MARGIN_X + 2f;
     float logoBoxY = headerBottom + 4f;
-    float logoBoxW = logoColW - 8f;
+    float logoBoxW = 60f;
     float logoBoxH = headerHeight - 8f;
     try {
       PDImageXObject logo = loadImage(doc, "static/logo.png");
@@ -140,21 +129,21 @@ public class AphPdfService implements GenerateAphPdfUseCase {
       drawCenteredText(cs, "LOGO", logoBoxX + logoBoxW / 2f, logoBoxY + logoBoxH / 2f);
     }
 
-    // Title centered in the middle cell.
+    // Title block centered on the page.
     setFont(cs, bold, TITLE_FONT);
-    drawCenteredText(cs, "ATENCIÓN PRE-HOSPITALARIA", PAGE_WIDTH / 2f, headerTop - 24f);
-    setFont(cs, normal, 7.5f);
-    drawCenteredText(cs, "HISTORIA CLÍNICA", PAGE_WIDTH / 2f, headerTop - 38f);
+    drawCenteredText(cs, "ATENCIÓN PRE-HOSPITALARIA", PAGE_WIDTH / 2f, headerTop - 22f);
+    setFont(cs, normal, 8f);
+    drawCenteredText(cs, "HISTORIA CLÍNICA", PAGE_WIDTH / 2f, headerTop - 36f);
 
-    // Version block on the right cell.
-    float versionCenterX = MARGIN_X + CONTENT_WIDTH - (versionColW / 2f);
+    // Version block on the right.
+    float versionCenterX = PAGE_WIDTH - MARGIN_X - 36f;
     setFont(cs, bold, 8.5f);
     drawCenteredText(cs, "FAPH v1", versionCenterX, headerTop - 22f);
     setFont(cs, normal, 7.5f);
     drawCenteredText(cs, "01/03/2025", versionCenterX, headerTop - 36f);
 
     // Strip below header with Placa / Movil.
-    float infoY = headerBottom - 11f;
+    float infoY = headerBottom - 8f;
     setFont(cs, bold, HEADER_FONT);
     drawText(cs, MARGIN_X + 4f, infoY, "PLACA:");
     setFont(cs, normal, HEADER_FONT);
@@ -165,7 +154,7 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     setFont(cs, normal, HEADER_FONT);
     drawText(cs, PAGE_WIDTH / 2f - 44f, infoY, up(nvl(aph.getMovil())));
 
-    return headerBottom - 18f;
+    return headerBottom - 16f;
   }
 
   private float drawPatientData(PDPageContentStream cs, float y, Aph aph) throws Exception {
@@ -269,8 +258,8 @@ public class AphPdfService implements GenerateAphPdfUseCase {
           throws Exception {
     y = section(cs, y, "UBICACION DE LAS LESIONES");
 
-    float panelHeight = 168f;
-    drawBorder(cs, MARGIN_X, y - panelHeight, CONTENT_WIDTH, panelHeight);
+    float panelHeight = 170f;
+    // No outer box — silhouettes float freely on white background.
 
     boolean painted = false;
     if (aph.getLesionesImagen() != null && !aph.getLesionesImagen().isBlank()) {
@@ -278,27 +267,14 @@ public class AphPdfService implements GenerateAphPdfUseCase {
         drawCapturedBodyImage(cs, doc, aph.getLesionesImagen(), y, panelHeight);
         painted = true;
       } catch (Exception ignored) {
-        // fall through to fallbacks
+        // fall through to silhouette fallback
       }
     }
     if (!painted) {
-      try {
-        PDImageXObject body = loadImage(doc, "static/body.jpg");
-        float maxW = CONTENT_WIDTH - 24f;
-        float maxH = panelHeight - 16f;
-        float scale = Math.min(maxW / body.getWidth(), maxH / body.getHeight());
-        float drawW = body.getWidth() * scale;
-        float drawH = body.getHeight() * scale;
-        float drawX = MARGIN_X + (CONTENT_WIDTH - drawW) / 2f;
-        float drawY = y - panelHeight + (panelHeight - drawH) / 2f;
-        cs.drawImage(body, drawX, drawY, drawW, drawH);
-        painted = true;
-      } catch (Exception ignored) {
-        // fall through to vector silhouette
-      }
-    }
-    if (!painted) {
-      drawBodyFallback(cs, y, panelHeight);
+      // Vector silhouettes (front + back) with red marks for each lesion zone
+      // detected from aph.getLesiones(). This is the preferred fallback because
+      // it conveys the same clinical information as the captured image.
+      drawBodyFallback(cs, y, panelHeight, aph.getLesiones());
     }
 
     return y - panelHeight;
@@ -352,12 +328,12 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     y = section(cs, y, "PROCEDIMIENTOS REALIZADOS");
 
     String procedures = joinList(aph.getProcedimientos());
-    return singleValueRow(cs, y, procedures, 13f);
+    return singleValueRow(cs, y, procedures, 22f);
   }
 
   private float drawMaterials(PDPageContentStream cs, float y, Aph aph) throws Exception {
     y = section(cs, y, "MATERIALES Y DROGAS UTILIZADAS");
-    return singleValueRow(cs, y, nvl(aph.getMateriales()), 13f);
+    return singleValueRow(cs, y, nvl(aph.getMateriales()), 22f);
   }
 
   private float drawSignatures(PDPageContentStream cs, float y, Aph aph) throws Exception {
@@ -428,22 +404,21 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     for (Cell cell : cells) {
       float width = CONTENT_WIDTH * cell.span() / totalSpan;
 
+      // Label sits ABOVE the field, no background.
       setFont(cs, bold, LABEL_FONT);
-      drawCenteredText(cs, up(cell.label()), x + (width / 2f), y - 5.6f);
+      String labelText = up(cell.label());
+      float labelMax = width - CELL_PAD_X * 2f;
+      String labelFit = fitText(labelText, labelMax, bold, LABEL_FONT);
+      float labelW = stringWidth(labelFit, bold, LABEL_FONT);
+      drawText(cs, x + (width - labelW) / 2f, y - 5.8f, labelFit);
 
       float valueBoxY = y - LABEL_HEIGHT - LABEL_VALUE_GAP - VALUE_HEIGHT;
       float valueBoxX = x + 1.5f;
       float valueBoxW = width - 3f;
 
       drawFieldCell(cs, valueBoxX, valueBoxY, valueBoxW, VALUE_HEIGHT);
-
-      setFont(cs, normal, VALUE_FONT);
-      drawCenteredText(
-              cs,
-              trimToWidth(up(cell.value()), valueBoxW - 6f, VALUE_FONT),
-              x + (width / 2f),
-              valueBoxY + 3.4f
-      );
+      drawValueInBox(cs, up(cell.value()), valueBoxX, valueBoxY, valueBoxW, VALUE_HEIGHT,
+              normal, VALUE_FONT);
 
       x += width;
     }
@@ -452,22 +427,17 @@ public class AphPdfService implements GenerateAphPdfUseCase {
   }
 
   /**
-   * Draws a uniform value cell: soft drop shadow, very light fill, rounded
-   * border. Used everywhere a value is rendered so all inputs look consistent.
+   * Draws a uniform value cell: white background, light-gray rounded border,
+   * no shadow. Used everywhere a value is rendered so all inputs look consistent.
    */
   private void drawFieldCell(PDPageContentStream cs, float x, float y, float w, float h)
           throws Exception {
-    // Subtle drop shadow (1pt below).
-    setFillGray(cs, FIELD_SHADOW_GRAY);
-    drawRoundedPath(cs, x + 0.4f, y - 0.6f, w, h, FIELD_RADIUS);
-    cs.fill();
-
-    // Field fill.
-    setFillGray(cs, FIELD_FILL_GRAY);
+    // White fill so values stand out cleanly from the page.
+    setFillGray(cs, 1f);
     drawRoundedPath(cs, x, y, w, h, FIELD_RADIUS);
     cs.fill();
 
-    // Border on top.
+    // Light gray rounded border.
     cs.setStrokingColor(FIELD_BORDER_GRAY, FIELD_BORDER_GRAY, FIELD_BORDER_GRAY);
     cs.setLineWidth(FIELD_LINE_WIDTH);
     drawRoundedPath(cs, x, y, w, h, FIELD_RADIUS);
@@ -526,10 +496,14 @@ public class AphPdfService implements GenerateAphPdfUseCase {
       drawFieldCell(cs, x + 1.5f, y - rowHeight, width - 3f, rowHeight);
 
       setFont(cs, bold, LABEL_FONT);
-      drawText(cs, x + 6f, y - 12f, up(cell.label()));
+      String label = up(cell.label());
+      drawText(cs, x + CELL_PAD_X + 3f, y - 12f, label);
+      float labelW = stringWidth(label, bold, LABEL_FONT);
+      float valueStart = x + CELL_PAD_X + 3f + labelW + 6f;
+      float valueMaxW = width - (valueStart - x) - CELL_PAD_X - 3f;
 
       setFont(cs, normal, VALUE_FONT);
-      drawText(cs, x + 175f, y - 12f, trimToWidth(up(cell.value()), width - 180f, VALUE_FONT));
+      drawText(cs, valueStart, y - 12f, fitText(up(cell.value()), valueMaxW, normal, VALUE_FONT));
 
       x += width;
     }
@@ -551,15 +525,10 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     drawFieldCell(cs, MARGIN_X + labelW, y - height, valueW, height);
 
     setFont(cs, bold, LABEL_FONT);
-    drawText(cs, MARGIN_X + 5f, y - 11f, up(label));
+    drawText(cs, MARGIN_X + CELL_PAD_X + 2f, y - 11f, up(label));
 
-    setFont(cs, normal, VALUE_FONT);
-    drawCenteredText(
-            cs,
-            trimToWidth(up(value), valueW - 6f, VALUE_FONT),
-            MARGIN_X + labelW + (valueW / 2f),
-            y - 11f
-    );
+    drawValueInBox(cs, up(value), MARGIN_X + labelW, y - height, valueW, height,
+            normal, VALUE_FONT);
 
     return y - height;
   }
@@ -580,11 +549,13 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     setFont(cs, bold, LABEL_FONT);
     String[] labelLines = label.split("\\n");
     for (int i = 0; i < labelLines.length; i++) {
-      drawCenteredText(cs, up(labelLines[i]), MARGIN_X + (labelW / 2f), y - 15f - (i * 8f));
+      String line = up(labelLines[i]);
+      float lw = stringWidth(line, bold, LABEL_FONT);
+      drawText(cs, MARGIN_X + (labelW - lw) / 2f, y - 15f - (i * 8f), line);
     }
 
-    setFont(cs, normal, VALUE_FONT);
-    writeWrapped(cs, MARGIN_X + labelW + 5f, y - 10f, valueW - 10f, up(value), 5, 8.5f);
+    drawValueWrappedInBox(cs, up(value), MARGIN_X + labelW, y - height, valueW, height,
+            normal, VALUE_FONT, 9f);
 
     return y - height;
   }
@@ -592,15 +563,8 @@ public class AphPdfService implements GenerateAphPdfUseCase {
   private float singleValueRow(PDPageContentStream cs, float y, String value, float height)
           throws Exception {
     drawFieldCell(cs, MARGIN_X, y - height, CONTENT_WIDTH, height);
-
-    setFont(cs, normal, VALUE_FONT);
-    drawCenteredText(
-            cs,
-            trimToWidth(up(value), CONTENT_WIDTH - 10f, VALUE_FONT),
-            PAGE_WIDTH / 2f,
-            y - (height / 2f) - 1f
-    );
-
+    drawValueWrappedInBox(cs, up(value), MARGIN_X, y - height, CONTENT_WIDTH, height,
+            normal, VALUE_FONT, 9f);
     return y - height;
   }
 
@@ -625,22 +589,114 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     );
   }
 
-  private void drawBodyFallback(PDPageContentStream cs, float panelTopY, float panelHeight)
+  private void drawBodyFallback(
+          PDPageContentStream cs, float panelTopY, float panelHeight, List<String> lesiones)
           throws Exception {
     float panelBottom = panelTopY - panelHeight;
     float centerY = (panelTopY + panelBottom) / 2f;
     float figureHeight = panelHeight - 22f;
-    float gap = 40f;
+    float gap = 60f;
     float halfX = MARGIN_X + (CONTENT_WIDTH / 2f);
-    float leftCenter = halfX - (gap / 2f) - (figureHeight * 0.18f);
-    float rightCenter = halfX + (gap / 2f) + (figureHeight * 0.18f);
+    float figureHalfWidth = figureHeight * 0.20f;
+    float leftCenter = halfX - (gap / 2f) - figureHalfWidth;
+    float rightCenter = halfX + (gap / 2f) + figureHalfWidth;
 
     drawSilhouette(cs, leftCenter, centerY, figureHeight);
     drawSilhouette(cs, rightCenter, centerY, figureHeight);
 
+    // Paint red marks for any lesion keyword that we can map to a body region.
+    paintInjuryMarks(cs, lesiones, leftCenter, centerY, figureHeight, /*front*/ true);
+    paintInjuryMarks(cs, lesiones, rightCenter, centerY, figureHeight, /*front*/ false);
+
     setFont(cs, bold, LABEL_FONT);
     drawCenteredText(cs, "VISTA FRONTAL", leftCenter, panelBottom + 6f);
     drawCenteredText(cs, "VISTA DORSAL", rightCenter, panelBottom + 6f);
+  }
+
+  /**
+   * Renders red rectangles on top of a silhouette for every lesion entry whose
+   * normalized text matches a known body region. Lateral keywords ("DERECHA" /
+   * "IZQUIERDA") shift the mark horizontally — and are mirrored on the dorsal
+   * view because the anatomical right is the visual left in that view.
+   */
+  private void paintInjuryMarks(
+          PDPageContentStream cs,
+          List<String> lesiones,
+          float cx,
+          float cy,
+          float h,
+          boolean frontView
+  ) throws Exception {
+    if (lesiones == null || lesiones.isEmpty()) {
+      return;
+    }
+    cs.setNonStrokingColor(INJURY_R, INJURY_G, INJURY_B);
+    cs.setStrokingColor(INJURY_R, INJURY_G, INJURY_B);
+    cs.setLineWidth(0.5f);
+
+    for (String raw : lesiones) {
+      String norm = normalizeForMatch(raw);
+      if (norm.isEmpty()) {
+        continue;
+      }
+      // Lateralidad: -1 = izquierda (visual), 0 = central, +1 = derecha (visual).
+      int side = 0;
+      boolean isRight = norm.contains("DERECH");
+      boolean isLeft = norm.contains("IZQUIERD");
+      if (isRight) side = frontView ? +1 : -1; // mirror on dorsal view
+      if (isLeft) side = frontView ? -1 : +1;
+
+      // Region detection (first match wins; head/face takes priority over generic).
+      Float[] zone = null;
+      if (norm.contains("CABEZA") || norm.contains("CRANEO") || norm.contains("FRONTAL")
+              || norm.contains("CARA")) {
+        zone = new Float[]{0f, 0.40f, 0.18f, 0.16f};
+      } else if (norm.contains("CUELLO") || norm.contains("CERVICAL")) {
+        zone = new Float[]{0f, 0.29f, 0.12f, 0.05f};
+      } else if (norm.contains("HOMBRO")) {
+        zone = new Float[]{side * 0.16f, 0.26f, 0.10f, 0.06f};
+      } else if (norm.contains("BRAZO") || norm.contains("HUMERO")) {
+        zone = new Float[]{side * 0.22f, 0.16f, 0.08f, 0.12f};
+      } else if (norm.contains("ANTEBRAZO") || norm.contains("MUNECA") || norm.contains("MANO")) {
+        zone = new Float[]{side * 0.28f, -0.02f, 0.08f, 0.10f};
+      } else if (norm.contains("TORAX") || norm.contains("TORACI") || norm.contains("HEMITORA")
+              || norm.contains("COSTILLA") || norm.contains("PECHO")) {
+        zone = new Float[]{side * 0.06f, 0.18f, 0.20f, 0.12f};
+      } else if (norm.contains("ABDOMEN") || norm.contains("VIENTRE")) {
+        zone = new Float[]{side * 0.04f, 0.04f, 0.18f, 0.10f};
+      } else if (norm.contains("ESPALDA") || norm.contains("LUMBAR") || norm.contains("DORSAL")) {
+        zone = new Float[]{side * 0.04f, 0.10f, 0.20f, 0.16f};
+      } else if (norm.contains("CADERA") || norm.contains("PELVIS")) {
+        zone = new Float[]{side * 0.05f, -0.10f, 0.18f, 0.08f};
+      } else if (norm.contains("RODILLA")) {
+        zone = new Float[]{side * 0.06f, -0.28f, 0.07f, 0.05f};
+      } else if (norm.contains("MUSLO") || norm.contains("FEMUR") || norm.contains("PIERNA")) {
+        zone = new Float[]{side * 0.06f, -0.22f, 0.07f, 0.10f};
+      } else if (norm.contains("TOBILLO") || norm.contains("PIE")) {
+        zone = new Float[]{side * 0.06f, -0.44f, 0.08f, 0.05f};
+      }
+
+      if (zone != null) {
+        float zx = cx + zone[0] * h - (zone[2] * h) / 2f;
+        float zy = cy + zone[1] * h - (zone[3] * h) / 2f;
+        float zw = zone[2] * h;
+        float zh = zone[3] * h;
+        // Rounded red mark for a softer clinical look.
+        drawRoundedPath(cs, zx, zy, zw, zh, Math.min(2f, Math.min(zw, zh) / 3f));
+        cs.fill();
+      }
+    }
+    resetColor(cs);
+  }
+
+  private static String normalizeForMatch(String value) {
+    if (value == null) {
+      return "";
+    }
+    String n = Normalizer.normalize(value, Normalizer.Form.NFD)
+            .replaceAll("\\p{M}", "")
+            .toUpperCase(java.util.Locale.ROOT);
+    return n;
   }
 
   /**
@@ -650,21 +706,24 @@ public class AphPdfService implements GenerateAphPdfUseCase {
    */
   private void drawSilhouette(PDPageContentStream cs, float cx, float cy, float h)
           throws Exception {
-    cs.setLineWidth(0.6f);
-    cs.setStrokingColor(0.35f, 0.35f, 0.35f);
+    cs.setLineWidth(0.8f);
+    cs.setStrokingColor(0.25f, 0.25f, 0.25f);
 
-    float headR = h * 0.085f;
-    float headCy = cy + h * 0.40f;
+    float headR = h * 0.09f;
+    float headCy = cy + h * 0.41f;
     float neckTop = headCy - headR;
-    float shoulderY = cy + h * 0.27f;
-    float shoulderHalf = h * 0.18f;
-    float waistY = cy - h * 0.02f;
-    float waistHalf = h * 0.10f;
+    float shoulderY = cy + h * 0.28f;
+    float shoulderHalf = h * 0.20f;
+    float waistY = cy + h * 0.02f;
+    float waistHalf = h * 0.12f;
     float hipY = cy - h * 0.08f;
-    float hipHalf = h * 0.14f;
+    float hipHalf = h * 0.16f;
+    float crotchY = cy - h * 0.14f;
+    float kneeY = cy - h * 0.30f;
     float footY = cy - h * 0.48f;
     float handY = cy - h * 0.04f;
     float handHalf = h * 0.30f;
+    float elbowY = cy + h * 0.10f;
 
     // Head (circle approximated with bezier).
     float k = 0.552284749831f * headR;
@@ -687,30 +746,40 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     cs.moveTo(cx - shoulderHalf, shoulderY);
     cs.lineTo(cx - waistHalf, waistY);
     cs.lineTo(cx - hipHalf, hipY);
+    cs.lineTo(cx - hipHalf * 0.8f, crotchY);
+    cs.lineTo(cx + hipHalf * 0.8f, crotchY);
     cs.lineTo(cx + hipHalf, hipY);
     cs.lineTo(cx + waistHalf, waistY);
     cs.lineTo(cx + shoulderHalf, shoulderY);
     cs.closePath();
     cs.stroke();
 
-    // Arms.
+    // Arms with a slight bend at the elbow.
     cs.moveTo(cx - shoulderHalf, shoulderY);
+    cs.lineTo(cx - shoulderHalf - h * 0.04f, elbowY);
     cs.lineTo(cx - handHalf, handY);
     cs.stroke();
     cs.moveTo(cx + shoulderHalf, shoulderY);
+    cs.lineTo(cx + shoulderHalf + h * 0.04f, elbowY);
     cs.lineTo(cx + handHalf, handY);
     cs.stroke();
 
-    // Legs.
-    cs.moveTo(cx - hipHalf * 0.9f, hipY);
-    cs.lineTo(cx - hipHalf * 0.5f, footY);
-    cs.lineTo(cx - hipHalf * 0.1f, footY);
-    cs.lineTo(cx - hipHalf * 0.1f, hipY);
+    // Legs (hip -> knee -> foot, each leg as a closed polygon).
+    cs.moveTo(cx - hipHalf * 0.95f, crotchY);
+    cs.lineTo(cx - hipHalf * 0.55f, kneeY);
+    cs.lineTo(cx - hipHalf * 0.45f, footY);
+    cs.lineTo(cx - hipHalf * 0.05f, footY);
+    cs.lineTo(cx - hipHalf * 0.10f, kneeY);
+    cs.lineTo(cx - hipHalf * 0.05f, crotchY);
+    cs.closePath();
     cs.stroke();
-    cs.moveTo(cx + hipHalf * 0.9f, hipY);
-    cs.lineTo(cx + hipHalf * 0.5f, footY);
-    cs.lineTo(cx + hipHalf * 0.1f, footY);
-    cs.lineTo(cx + hipHalf * 0.1f, hipY);
+    cs.moveTo(cx + hipHalf * 0.95f, crotchY);
+    cs.lineTo(cx + hipHalf * 0.55f, kneeY);
+    cs.lineTo(cx + hipHalf * 0.45f, footY);
+    cs.lineTo(cx + hipHalf * 0.05f, footY);
+    cs.lineTo(cx + hipHalf * 0.10f, kneeY);
+    cs.lineTo(cx + hipHalf * 0.05f, crotchY);
+    cs.closePath();
     cs.stroke();
 
     resetColor(cs);
@@ -752,22 +821,6 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     return currentFont.getStringWidth(text) / 1000f * currentFontSize;
   }
 
-  private void writeWrapped(
-          PDPageContentStream cs,
-          float x,
-          float y,
-          float width,
-          String value,
-          int maxLines,
-          float lineHeight
-  ) throws Exception {
-    List<String> lines = wrap(value, Math.max(20, (int) (width / 3.1f)));
-
-    for (int i = 0; i < Math.min(maxLines, lines.size()); i++) {
-      drawText(cs, x, y - (i * lineHeight), lines.get(i));
-    }
-  }
-
   private void drawBorder(PDPageContentStream cs, float x, float y, float w, float h)
           throws Exception {
     cs.setStrokingColor(FIELD_BORDER_GRAY, FIELD_BORDER_GRAY, FIELD_BORDER_GRAY);
@@ -792,42 +845,149 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     cs.setStrokingColor(0f, 0f, 0f);
   }
 
-  private static List<String> wrap(String value, int maxChars) {
-    if (value == null || value.isBlank()) {
-      return List.of("");
+  /**
+   * Trims a value to fit a given width using actual font metrics. Appends "…"
+   * (single dot trio) when truncated. Never returns a string wider than maxWidth.
+   */
+  private String fitText(String value, float maxWidth, PDType1Font font, float fontSize)
+          throws Exception {
+    String safe = nvl(value);
+    if (safe.isEmpty() || maxWidth <= 0f) {
+      return safe;
     }
-
-    String[] words = value.trim().split("\\s+");
-    List<String> lines = new ArrayList<>();
-    StringBuilder current = new StringBuilder();
-
-    for (String word : words) {
-      if (current.isEmpty()) {
-        current.append(word);
-      } else if (current.length() + 1 + word.length() <= maxChars) {
-        current.append(' ').append(word);
+    if (stringWidth(safe, font, fontSize) <= maxWidth) {
+      return safe;
+    }
+    String ellipsis = "...";
+    float ellipsisWidth = stringWidth(ellipsis, font, fontSize);
+    if (ellipsisWidth >= maxWidth) {
+      return "";
+    }
+    int lo = 0;
+    int hi = safe.length();
+    while (lo < hi) {
+      int mid = (lo + hi + 1) >>> 1;
+      float w = stringWidth(safe.substring(0, mid), font, fontSize) + ellipsisWidth;
+      if (w <= maxWidth) {
+        lo = mid;
       } else {
-        lines.add(current.toString());
-        current = new StringBuilder(word);
+        hi = mid - 1;
       }
     }
+    return safe.substring(0, lo) + ellipsis;
+  }
 
-    if (!current.isEmpty()) {
+  private float stringWidth(String text, PDType1Font font, float fontSize) throws Exception {
+    if (text == null || text.isEmpty()) {
+      return 0f;
+    }
+    return font.getStringWidth(text) / 1000f * fontSize;
+  }
+
+  /**
+   * Wraps a value into lines that each fit within maxWidth, using actual font
+   * metrics. Splits on spaces first, then hard-breaks long single words.
+   */
+  private List<String> wrapToWidth(String value, float maxWidth, PDType1Font font, float fontSize)
+          throws Exception {
+    List<String> lines = new ArrayList<>();
+    String safe = nvl(value);
+    if (safe.isEmpty()) {
+      lines.add("");
+      return lines;
+    }
+    String[] words = safe.split("\\s+");
+    StringBuilder current = new StringBuilder();
+    for (String word : words) {
+      String candidate = current.isEmpty() ? word : current + " " + word;
+      if (stringWidth(candidate, font, fontSize) <= maxWidth) {
+        current.setLength(0);
+        current.append(candidate);
+      } else {
+        if (current.length() > 0) {
+          lines.add(current.toString());
+          current.setLength(0);
+        }
+        // Hard-break a single long word.
+        if (stringWidth(word, font, fontSize) <= maxWidth) {
+          current.append(word);
+        } else {
+          StringBuilder piece = new StringBuilder();
+          for (char ch : word.toCharArray()) {
+            piece.append(ch);
+            if (stringWidth(piece.toString(), font, fontSize) > maxWidth) {
+              piece.deleteCharAt(piece.length() - 1);
+              lines.add(piece.toString());
+              piece.setLength(0);
+              piece.append(ch);
+            }
+          }
+          if (piece.length() > 0) {
+            current.append(piece);
+          }
+        }
+      }
+    }
+    if (current.length() > 0) {
       lines.add(current.toString());
     }
-
     return lines;
   }
 
-  private static String trimToWidth(String value, float width, float fontSize) {
+  /**
+   * Draws a value inside a cell box. Centers when it fits, otherwise left-aligns
+   * with padding and truncates with ellipsis. Never overflows the cell.
+   */
+  private void drawValueInBox(
+          PDPageContentStream cs,
+          String value,
+          float boxX,
+          float boxY,
+          float boxW,
+          float boxH,
+          PDType1Font font,
+          float fontSize
+  ) throws Exception {
+    setFont(cs, font, fontSize);
+    float maxInner = boxW - CELL_PAD_X * 2f;
     String safe = nvl(value);
-    int maxChars = Math.max(1, (int) (width / (fontSize * 0.50f)));
-
-    if (safe.length() <= maxChars) {
-      return safe;
+    float w = stringWidth(safe, font, fontSize);
+    float textY = boxY + (boxH - fontSize) / 2f + 1.5f;
+    if (w <= maxInner) {
+      drawText(cs, boxX + (boxW - w) / 2f, textY, safe);
+    } else {
+      String fit = fitText(safe, maxInner, font, fontSize);
+      drawText(cs, boxX + CELL_PAD_X, textY, fit);
     }
+  }
 
-    return safe.substring(0, Math.max(0, maxChars - 3)) + "...";
+  private void drawValueWrappedInBox(
+          PDPageContentStream cs,
+          String value,
+          float boxX,
+          float boxY,
+          float boxW,
+          float boxH,
+          PDType1Font font,
+          float fontSize,
+          float lineHeight
+  ) throws Exception {
+    setFont(cs, font, fontSize);
+    float maxInner = boxW - CELL_PAD_X * 2f;
+    List<String> lines = wrapToWidth(value, maxInner, font, fontSize);
+    int maxLines = Math.max(1, (int) Math.floor((boxH - 2f) / lineHeight));
+    int n = Math.min(lines.size(), maxLines);
+    float blockH = n * lineHeight;
+    float topY = boxY + boxH - (boxH - blockH) / 2f - fontSize;
+    for (int i = 0; i < n; i++) {
+      String line = lines.get(i);
+      if (i == maxLines - 1 && lines.size() > maxLines) {
+        line = fitText(line + " " + String.join(" ", lines.subList(i + 1, lines.size())),
+                maxInner, font, fontSize);
+      }
+      float w = stringWidth(line, font, fontSize);
+      drawText(cs, boxX + (boxW - w) / 2f, topY - i * lineHeight, line);
+    }
   }
 
   private static String pdfSafe(String value) {
