@@ -34,8 +34,10 @@ public class AphPdfService implements GenerateAphPdfUseCase {
   private final PDType1Font bold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
   private final PDType1Font normal = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
 
-  private static final float PAGE_WIDTH = PDRectangle.A4.getWidth();
-  private static final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
+  // Tamaño carta: 8.5 x 11 pulgadas.
+  private static final PDRectangle PAGE_SIZE = PDRectangle.LETTER;
+  private static final float PAGE_WIDTH = PAGE_SIZE.getWidth();
+  private static final float PAGE_HEIGHT = PAGE_SIZE.getHeight();
 
   private static final float MARGIN_X = 14f;
   private static final float CONTENT_WIDTH = PAGE_WIDTH - (MARGIN_X * 2);
@@ -77,7 +79,7 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     Aph aph = repository.findById(aphId).orElseThrow(() -> new AphNotFoundException(aphId));
 
     try (PDDocument doc = new PDDocument()) {
-      PDPage page1 = new PDPage(PDRectangle.A4);
+      PDPage page1 = new PDPage(PAGE_SIZE);
       doc.addPage(page1);
 
       try (PDPageContentStream cs = new PDPageContentStream(doc, page1)) {
@@ -93,9 +95,10 @@ public class AphPdfService implements GenerateAphPdfUseCase {
         y = drawPersonalHistory(cs, y, aph);
         y = drawPhysicalExam(cs, y, aph);
         drawInjuryLocation(cs, doc, y, aph);
+        drawFooterCertification(cs);
       }
 
-      PDPage page2 = new PDPage(PDRectangle.A4);
+      PDPage page2 = new PDPage(PAGE_SIZE);
       doc.addPage(page2);
       try (PDPageContentStream cs = new PDPageContentStream(doc, page2)) {
         float y = PAGE_HEIGHT - 16f;
