@@ -77,18 +77,28 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     Aph aph = repository.findById(aphId).orElseThrow(() -> new AphNotFoundException(aphId));
 
     try (PDDocument doc = new PDDocument()) {
-      PDPage page = new PDPage(PDRectangle.A4);
-      doc.addPage(page);
+      PDPage page1 = new PDPage(PDRectangle.A4);
+      doc.addPage(page1);
 
-      try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+      try (PDPageContentStream cs = new PDPageContentStream(doc, page1)) {
         float y = PAGE_HEIGHT - 16f;
 
         y = drawHeader(cs, doc, y, aph);
         y = drawPatientData(cs, y, aph);
+        y = drawEventSiteData(cs, y, aph);
+        y = drawVehicleData(cs, y, aph);
+        y = drawOwnerData(cs, y, aph);
+        y = drawDriverData(cs, y, aph);
         y = drawExternalCause(cs, y, aph);
         y = drawPersonalHistory(cs, y, aph);
         y = drawPhysicalExam(cs, y, aph);
-        y = drawInjuryLocation(cs, doc, y, aph);
+        drawInjuryLocation(cs, doc, y, aph);
+      }
+
+      PDPage page2 = new PDPage(PDRectangle.A4);
+      doc.addPage(page2);
+      try (PDPageContentStream cs = new PDPageContentStream(doc, page2)) {
+        float y = PAGE_HEIGHT - 16f;
         y = drawDiagnosisAndFindings(cs, y, aph);
         y = drawProcedures(cs, y, aph);
         y = drawMaterials(cs, y, aph);
@@ -142,7 +152,7 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     setFont(cs, normal, 7.5f);
     drawCenteredText(cs, "01/03/2025", versionCenterX, headerTop - 36f);
 
-    // Strip below header with Placa / Movil.
+    // Strip below header: Placa | Movil | Atencion Inicial/Remitido/Control | Codigo APH.
     float infoY = headerBottom - 8f;
     setFont(cs, bold, HEADER_FONT);
     drawText(cs, MARGIN_X + 4f, infoY, "PLACA:");
@@ -150,9 +160,20 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     drawText(cs, MARGIN_X + 38f, infoY, up(nvl(aph.getPlaca())));
 
     setFont(cs, bold, HEADER_FONT);
-    drawText(cs, PAGE_WIDTH / 2f - 80f, infoY, "MÓVIL:");
+    drawText(cs, PAGE_WIDTH / 2f - 96f, infoY, "MÓVIL:");
     setFont(cs, normal, HEADER_FONT);
-    drawText(cs, PAGE_WIDTH / 2f - 44f, infoY, up(nvl(aph.getMovil())));
+    drawText(cs, PAGE_WIDTH / 2f - 60f, infoY, up(nvl(aph.getMovil())));
+
+    setFont(cs, bold, HEADER_FONT);
+    drawText(cs, PAGE_WIDTH / 2f, infoY, "ATEN. INICIAL/REMITIDO/CTRL:");
+    setFont(cs, normal, HEADER_FONT);
+    drawText(cs, PAGE_WIDTH / 2f + 122f, infoY,
+            up(nvl(aph.getEsAtencionInicialPacienteRemitidoOControl())));
+
+    setFont(cs, bold, HEADER_FONT);
+    drawText(cs, PAGE_WIDTH - 128f, infoY, "CÓDIGO APH:");
+    setFont(cs, normal, HEADER_FONT);
+    drawText(cs, PAGE_WIDTH - 62f, infoY, up(nvl(aph.getCodigo())));
 
     return headerBottom - 16f;
   }
@@ -171,15 +192,6 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     );
 
     y = tableRow(cs, y,
-            cell("Fecha de traslado", fd(aph.getFechaAccidente()), 2),
-            cell("Hora de traslado", ft(aph.getHoraAccidente()), 2),
-            cell("Lugar de ocurrencia de la atención", nvl(aph.getLugarOcurrencia()), 5),
-            cell("Zona", nvl(aph.getZonaOrigen()), 1),
-            cell("Departamento", nvl(aph.getDepartamentoOrigen()), 2),
-            cell("Municipio", nvl(aph.getMunicipioOrigen()), 2)
-    );
-
-    y = tableRow(cs, y,
             cell("Fecha de Nacimiento", fd(aph.getFechaNacimiento()), 3),
             cell("Edad", nvl(aph.getEdad()), 1),
             cell("Estado Civil", nvl(aph.getEstadoCivil()), 2),
@@ -189,7 +201,8 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     );
 
     y = tableRow(cs, y,
-            cell("Dirección de Residencia", nvl(aph.getDireccion()), 5),
+            cell("Dirección de Residencia", nvl(aph.getDireccion()), 4),
+            cell("Cód. Municipio Residencia", nvl(aph.getCodigoMunicipioResidencia()), 2),
             cell("Telefono", nvl(aph.getTelefono()), 2),
             cell("Zona", nvl(aph.getZonaPaciente()), 1),
             cell("Departamento", nvl(aph.getDepartamento()), 2),
@@ -226,6 +239,94 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     return tableRow(cs, y,
             cell("Causa Externa Origina la Atencion", nvl(aph.getCausaExterna()), 1),
             cell("Motivo de Consulta", nvl(aph.getDiagnosticos()), 1)
+    );
+  }
+
+  private float drawEventSiteData(PDPageContentStream cs, float y, Aph aph) throws Exception {
+    y = section(cs, y, "DATOS SITIO DONDE OCURRIÓ EL EVENTO");
+
+    List<Cell> row1 = new ArrayList<>();
+    row1.add(cell("Fecha de Traslado", fd(aph.getFechaAccidente()), 2));
+    row1.add(cell("Hora de Traslado", ft(aph.getHoraAccidente()), 2));
+    row1.add(cell("Naturaleza del Evento", nvl(aph.getNaturalezaEvento()), 2));
+    String otroEvento = nvl(aph.getDescripcionOtroEvento());
+    if (!otroEvento.isBlank()) {
+      row1.add(cell("Descripción Otro Evento", otroEvento, 2));
+    }
+    row1.add(cell("Condición Víctima", nvl(aph.getCondicionVictima()), 2));
+    y = tableRow(cs, y, row1.toArray(new Cell[0]));
+
+    return tableRow(cs, y,
+            cell("Fecha Accidente", fd(aph.getFechaAccidente()), 2),
+            cell("Zona", nvl(aph.getZonaOrigen()), 1),
+            cell("Departamento", nvl(aph.getDepartamentoOrigen()), 2),
+            cell("Municipio", nvl(aph.getMunicipioOrigen()), 2),
+            cell("Cód. Municipio Ocurrencia", nvl(aph.getCodigoMunicipioOcurrencia()), 2),
+            cell("Dirección Ocurrencia", nvl(aph.getLugarOcurrencia()), 3)
+    );
+  }
+
+  private float drawVehicleData(PDPageContentStream cs, float y, Aph aph) throws Exception {
+    y = section(cs, y, "DATOS VEHÍCULO");
+
+    y = tableRow(cs, y,
+            cell("Estado Aseguramiento", nvl(aph.getEstadoAseguramiento()), 2),
+            cell("Placa Vehículo", nvl(aph.getPlacaVehiculo()), 2),
+            cell("Tipo Vehículo", nvl(aph.getTipoVehiculo()), 2),
+            cell("Código Aseguradora", nvl(aph.getCodigoAseguradora()), 2),
+            cell("No. Póliza SOAT", nvl(aph.getNumeroPolizaSoat()), 2)
+    );
+
+    return tableRow(cs, y,
+            cell("Inicio Vigencia", nvl(aph.getFechaInicioVigencia()), 2),
+            cell("Fin Vigencia", nvl(aph.getFechaFinVigencia()), 2),
+            cell("No. Radicado SIRAS", nvl(aph.getNumeroRadicadoSiras()), 2)
+    );
+  }
+
+  private float drawOwnerData(PDPageContentStream cs, float y, Aph aph) throws Exception {
+    y = section(cs, y, "DATOS PROPIETARIO");
+
+    String nombreCompletoPropietario = nvl(
+            (nvl(aph.getPrimerNombrePropietario()) + " "
+                    + nvl(aph.getSegundoNombrePropietario()) + " "
+                    + nvl(aph.getPrimerApellidoPropietario()) + " "
+                    + nvl(aph.getSegundoApellidoPropietario())).trim()
+    );
+
+    y = tableRow(cs, y,
+            cell("Tipo Documento", nvl(aph.getTipoDocumentoPropietario()), 2),
+            cell("No. Documento", nvl(aph.getNumeroDocumentoPropietario()), 2),
+            cell("Nombre Completo", nombreCompletoPropietario, 4)
+    );
+
+    return tableRow(cs, y,
+            cell("Dirección Residencia", nvl(aph.getDireccionResidenciaPropietario()), 4),
+            cell("Teléfono", nvl(aph.getTelefonoResidenciaPropietario()), 2),
+            cell("Cód. Municipio Residencia", nvl(aph.getCodigoMunicipioResidenciaPropietario()), 2)
+    );
+  }
+
+  private float drawDriverData(PDPageContentStream cs, float y, Aph aph) throws Exception {
+    y = section(cs, y, "DATOS CONDUCTOR");
+
+    String nombreCompletoConductor = nvl(
+            (nvl(aph.getPrimerNombreConductorVehiculo()) + " "
+                    + nvl(aph.getSegundoNombreConductorVehiculo()) + " "
+                    + nvl(aph.getPrimerApellidoConductorVehiculo()) + " "
+                    + nvl(aph.getSegundoApellidoConductorVehiculo())).trim()
+    );
+
+    y = tableRow(cs, y,
+            cell("Tipo Documento", nvl(aph.getTipoDocumentoConductorVehiculo()), 2),
+            cell("No. Documento", nvl(aph.getNumeroDocumentoConductorVehiculo()), 2),
+            cell("Nombre Completo", nombreCompletoConductor, 4)
+    );
+
+    return tableRow(cs, y,
+            cell("Dirección Residencia", nvl(aph.getDireccionResidenciaConductorVehiculo()), 4),
+            cell("Teléfono", nvl(aph.getTelefonoResidenciaConductorVehiculo()), 2),
+            cell("Cód. Municipio Residencia", nvl(aph.getCodigoMunicipioResidenciaConductorVehiculo()), 2)
     );
   }
 
