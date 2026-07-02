@@ -145,15 +145,11 @@ public class AphPdfService implements GenerateAphPdfUseCase {
     // Title block centered on the page.
     setFont(cs, bold, TITLE_FONT);
     drawCenteredText(cs, "ATENCIÓN PRE-HOSPITALARIA", PAGE_WIDTH / 2f, headerTop - 22f);
-    setFont(cs, normal, 8f);
-    drawCenteredText(cs, "HISTORIA CLÍNICA", PAGE_WIDTH / 2f, headerTop - 36f);
 
     // Version block on the right.
     float versionCenterX = PAGE_WIDTH - MARGIN_X - 36f;
     setFont(cs, bold, 8.5f);
     drawCenteredText(cs, "FAPH v1", versionCenterX, headerTop - 22f);
-    setFont(cs, normal, 7.5f);
-    drawCenteredText(cs, "01/03/2025", versionCenterX, headerTop - 36f);
 
     // Strip below header: Placa | Movil | Atencion Inicial/Remitido/Control | Codigo APH.
     float infoY = headerBottom - 8f;
